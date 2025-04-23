@@ -1,23 +1,24 @@
 {
-  "name": "roots/bedrock",
+  "name": "angel-start/wp-angel",
   "type": "project",
   "license": "MIT",
-  "description": "WordPress boilerplate with modern development tools, easier configuration, and an improved folder structure",
-  "homepage": "https://roots.io/bedrock/",
+  "description": "WordPress boilerplate for Angel Start with modern development tools and improved folder structure",
+  "homepage": "https://angel-start.com",
   "authors": [
     {
-      "name": "Scott Walkinshaw",
-      "email": "scott.walkinshaw@gmail.com",
-      "homepage": "https://github.com/swalkinshaw"
-    },
-    {
-      "name": "Ben Word",
-      "email": "ben@benword.com",
-      "homepage": "https://github.com/retlehs"
+      "name": "Angel Start Team",
+      "email": "contact@angel-start.com",
+      "homepage": "https://angel-start.com"
     }
   ],
   "keywords": [
-    "bedrock", "composer", "roots", "wordpress", "wp", "wp-config"
+    "bedrock",
+    "composer",
+    "roots",
+    "wordpress",
+    "wp",
+    "wp-config",
+    "angel-start"
   ],
   "support": {
     "issues": "https://github.com/roots/bedrock/issues",
@@ -30,7 +31,7 @@
     }
   ],
   "require": {
-    "php": ">=7.1",
+    "php": ">=7.4",
     "composer/installers": "^2.2",
     "vlucas/phpdotenv": "^5.6.0",
     "oscarotero/env": "^2.1.0",
@@ -40,7 +41,7 @@
     "wp-cli/wp-cli-bundle": "2.11.*",
     "humanmade/s3-uploads": "~3.0",
     "wpackagist-plugin/mailgun": "2.1.6",
-    "wpackagist-theme/twentytwentytwo":"^1.2"
+    "wpackagist-theme/twentytwentytwo": "^1.2"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.4.2",
@@ -51,17 +52,23 @@
     "preferred-install": "dist",
     "sort-packages": true,
     "allow-plugins": {
-    "composer/installers":true,
-    "roots/wordpress-core-installer":true
+      "composer/installers": true,
+      "roots/wordpress-core-installer": true
     }
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "extra": {
     "installer-paths": {
-      "web/app/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
-      "web/app/plugins/{$name}/": ["type:wordpress-plugin"],
-      "web/app/themes/{$name}/": ["type:wordpress-theme"]
+      "web/app/mu-plugins/{$name}/": [
+        "type:wordpress-muplugin"
+      ],
+      "web/app/plugins/{$name}/": [
+        "type:wordpress-plugin"
+      ],
+      "web/app/themes/{$name}/": [
+        "type:wordpress-theme"
+      ]
     },
     "wordpress-install-dir": "web/wp"
   },
