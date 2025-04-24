@@ -1,6 +1,7 @@
 .clever.json
 vendor/
-composer.lockweb/wp/
+composer.lock
+web/wp/
 vendor/
 web/app/uploads/
 web/app/cache/
