@@ -2,7 +2,6 @@
 vendor/
 composer.lock
 web/wp/
-vendor/
 web/app/uploads/
 web/app/cache/
 *.log
