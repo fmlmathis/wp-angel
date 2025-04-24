@@ -2,7 +2,9 @@
 vendor/
 composer.lock
 web/wp/
-vendor/
+!web/app/plugins/polylang/vendor/
+!web/app/plugins/polylang-pro/vendor/
+!web/app/plugins/advanced-custom-fields-pro/vendor/
 web/app/uploads/
 web/app/cache/
 *.log

@@ -1,20 +1,30 @@
 {
-  "name": "wp-engine/polylang-pro",
-  "description": "Polylang Pro",
+  "name": "wpsyntex/polylang-pro",
+  "description": "Adds multilingual capability to WordPress (Pro version)",
   "type": "wordpress-plugin",
-  "license": "GPLv2 or later",
-  "autoload": {
-    "psr-4": {
-      "PLL\\": "src/"
-    }
-  },
-  "authors": [
+  "license": "GPL-3.0-or-later",
+  "repositories": [
     {
-      "name": "WP Engine"
+      "type": "path",
+      "url": "../polylang",
+      "options": {
+        "symlink": false
+      }
     }
   ],
-  "config": {
-    "optimize-autoloader": true
+  "require": {
+    "php": ">=7.0",
+    "wpsyntex/polylang": "*"
   },
-  "require": {}
+  "autoload": {
+    "psr-4": {
+      "Polylang\\": "."
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "composer/installers": true
+    }
+  }
 }
