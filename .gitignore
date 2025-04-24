@@ -1,5 +1,6 @@
 .clever.json
 vendor/
+!web/app/plugins/polylang-pro/vendor/
 composer.lock
 web/wp/
 web/app/uploads/
