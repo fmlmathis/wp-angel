@@ -78,6 +78,12 @@
     "post-root-package-install": [
       "php -r \"copy('.env.example', '.env');\""
     ],
+    "post-install-cmd": [
+      "cd web/app/plugins/advanced-custom-fields-pro && composer install"
+    ],
+    "post-update-cmd": [
+      "cd web/app/plugins/advanced-custom-fields-pro && composer install"
+    ],
     "test": [
       "phpcs"
     ]
