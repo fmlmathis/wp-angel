@@ -1,3 +1,9 @@
 .clever.json
 vendor/
-composer.lock
+composer.lockweb/wp/
+vendor/
+web/app/uploads/
+web/app/cache/
+*.log
+.env
+.DS_Store
