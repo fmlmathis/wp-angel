@@ -1,0 +1,20 @@
+{
+  "name": "wp-engine/polylang-pro",
+  "description": "Polylang Pro",
+  "type": "wordpress-plugin",
+  "license": "GPLv2 or later",
+  "autoload": {
+    "psr-4": {
+      "PLL\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "WP Engine"
+    }
+  ],
+  "config": {
+    "optimize-autoloader": true
+  },
+  "require": {}
+}
