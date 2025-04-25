@@ -224,7 +224,7 @@ function _angel_start_register_acf_blocks() {
     }
 
     // Get all block folders
-    $blocks_dir = get_template_directory() . '/blocks';
+    $blocks_dir = dirname(get_template_directory()) . '/blocks';
     if (!is_dir($blocks_dir)) {
         return;
     }
@@ -248,7 +248,7 @@ function _angel_start_register_acf_blocks() {
             'name'              => $block_name,
             'title'             => $config['title'] ?? ucfirst(str_replace('-', ' ', $block_name)),
             'description'       => $config['description'] ?? '',
-            'render_template'   => "blocks/{$block_name}/template.php",
+            'render_template'   => dirname(get_template_directory()) . "/blocks/{$block_name}/template.php",
             'category'          => $config['category'] ?? 'formatting',
             'icon'              => $config['icon'] ?? 'block-default',
             'keywords'          => $config['keywords'] ?? [],
@@ -259,10 +259,10 @@ function _angel_start_register_acf_blocks() {
             ],
             'example'           => $config['example'] ?? [],
             'enqueue_style'     => isset($config['enqueue_style']) && $config['enqueue_style'] ? 
-                                   get_template_directory_uri() . "/blocks/{$block_name}/style.css" : 
+                                   dirname(get_template_directory_uri()) . "/blocks/{$block_name}/style.css" : 
                                    false,
             'enqueue_script'    => isset($config['enqueue_script']) && $config['enqueue_script'] ? 
-                                   get_template_directory_uri() . "/blocks/{$block_name}/script.js" : 
+                                   dirname(get_template_directory_uri()) . "/blocks/{$block_name}/script.js" : 
                                    false,
         ]);
     }
