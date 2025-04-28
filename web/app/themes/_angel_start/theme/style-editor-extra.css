@@ -1,5 +1,0 @@
-/*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
-.entry-header,
-.entry-content {
-  padding-inline: calc(var(--spacing, 0.25rem) * 8);
-}
