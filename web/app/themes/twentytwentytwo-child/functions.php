@@ -42,31 +42,3 @@ function disable_gutenberg_for_cpt($can_edit, $post) {
     return $can_edit;
 }
 add_filter('use_block_editor_for_post', 'disable_gutenberg_for_cpt', 10, 2);
-
-/**
- * Désactiver complètement l'éditeur visuel (WYSIWYG) pour certains CPT
- */
-function disable_wysiwyg_editor_for_cpt() {
-    global $post;
-    
-    if (!$post) {
-        return;
-    }
-    
-    // Liste des CPT pour lesquels désactiver l'éditeur visuel
-    $disabled_cpts = ['business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
-    
-    if (in_array(get_post_type($post), $disabled_cpts)) {
-        // Désactiver l'éditeur visuel complètement
-        add_filter('user_can_richedit', '__return_false');
-        
-        // Masquer les onglets de l'éditeur (Visuel/Texte)
-        add_action('admin_head', function() {
-            echo '<style>
-                .wp-editor-tabs { display: none !important; }
-                #wp-content-editor-tools { background-color: #f0f0f1; border: none; }
-            </style>';
-        });
-    }
-}
-add_action('admin_init', 'disable_wysiwyg_editor_for_cpt');
