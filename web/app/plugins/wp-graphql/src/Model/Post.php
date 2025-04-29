@@ -7,12 +7,9 @@
 
 namespace WPGraphQL\Model;
 
-use Exception;
 use GraphQLRelay\Relay;
-use WP_Post;
-use WP_Post_Type;
-use WP_Query;
 use WPGraphQL\Utils\Utils;
+use WP_Post;
 
 /**
  * Class Post - Models data for the Post object type
@@ -38,12 +35,12 @@ use WPGraphQL\Utils\Utils;
  * @property string  $pingStatus
  * @property string  $slug
  * @property array   $template
- * @property boolean $isFrontPage
- * @property boolean $isPrivacyPage
- * @property boolean $isPostsPage
- * @property boolean $isPreview
- * @property boolean $isRevision
- * @property boolean $isSticky
+ * @property bool    $isFrontPage
+ * @property bool    $isPrivacyPage
+ * @property bool    $isPostsPage
+ * @property bool    $isPreview
+ * @property bool    $isRevision
+ * @property bool    $isSticky
  * @property string  $toPing
  * @property string  $pinged
  * @property string  $modified
@@ -54,6 +51,7 @@ use WPGraphQL\Utils\Utils;
  * @property array   $editLock
  * @property string  $enclosure
  * @property string  $guid
+ * @property bool    $hasPassword
  * @property int     $menuOrder
  * @property string  $link
  * @property string  $uri
@@ -61,6 +59,7 @@ use WPGraphQL\Utils\Utils;
  * @property string  $featuredImageId
  * @property int     $featuredImageDatabaseId
  * @property string  $pageTemplate
+ * @property string  $password
  * @property int     $previewRevisionDatabaseId
  *
  * @property string  $captionRaw
@@ -69,49 +68,58 @@ use WPGraphQL\Utils\Utils;
  * @property string  $descriptionRaw
  * @property string  $descriptionRendered
  * @property string  $mediaType
+ * @property ?string $mediaItemUrl
  * @property string  $sourceUrl
  * @property string  $mimeType
  * @property array   $mediaDetails
- *
- * @package WPGraphQL\Model
  */
 class Post extends Model {
 
 	/**
 	 * Stores the incoming post data
 	 *
-	 * @var WP_Post $data
+	 * @var \WP_Post $data
 	 */
 	protected $data;
 
 	/**
 	 * Store the global post to reset during model tear down
 	 *
-	 * @var WP_Post
+	 * @var \WP_Post
 	 */
 	protected $global_post;
 
 	/**
 	 * Stores the incoming post type object for the post being modeled
 	 *
-	 * @var null|WP_Post_Type $post_type_object
+	 * @var \WP_Post_Type|null $post_type_object
 	 */
 	protected $post_type_object;
 
 	/**
 	 * Store the instance of the WP_Query
 	 *
-	 * @var WP_Query
+	 * @var \WP_Query
 	 */
 	protected $wp_query;
 
 	/**
+	 * Stores the resolved image `sourceUrl`s keyed by size.
+	 *
+	 * This is used to prevent multiple calls to `wp_get_attachment_image_src`.
+	 *
+	 * If no source URL is found for a size, the value will be `null`.
+	 *
+	 * @var array<string,?string>
+	 */
+	protected $source_urls_by_size = [];
+
+	/**
 	 * Post constructor.
 	 *
-	 * @param WP_Post $post The incoming WP_Post object that needs modeling.
+	 * @param \WP_Post $post The incoming WP_Post object that needs modeling.
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	public function __construct( WP_Post $post ) {
 
@@ -156,6 +164,7 @@ class Post extends Model {
 			'isPostsPage',
 			'isFrontPage',
 			'isPrivacyPage',
+			'hasPassword',
 		];
 
 		if ( isset( $this->post_type_object->graphql_single_name ) ) {
@@ -165,16 +174,12 @@ class Post extends Model {
 		$restricted_cap = $this->get_restricted_cap();
 
 		parent::__construct( $restricted_cap, $allowed_restricted_fields, (int) $post->post_author );
-
 	}
 
 	/**
-	 * Setup the global data for the model to have proper context when resolving
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	public function setup() {
-
 		global $wp_query, $post;
 
 		/**
@@ -188,7 +193,6 @@ class Post extends Model {
 		 * post data being set up.
 		 */
 		if ( $this->data instanceof WP_Post ) {
-
 			$id        = $this->data->ID;
 			$post_type = $this->data->post_type;
 			$post_name = $this->data->post_name;
@@ -249,7 +253,6 @@ class Post extends Model {
 			$GLOBALS['post']             = $data; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 			$wp_query->queried_object    = get_post( $this->data->ID );
 			$wp_query->queried_object_id = $this->data->ID;
-
 		}
 	}
 
@@ -278,13 +281,10 @@ class Post extends Model {
 		}
 
 		return $cap;
-
 	}
 
 	/**
-	 * Determine if the model is private
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
 	public function is_private() {
 
@@ -305,7 +305,6 @@ class Post extends Model {
 
 			// Determine if the revision is private using capabilities relative to the parent
 			return $this->is_post_private( $parent_post );
-
 		}
 
 		/**
@@ -338,12 +337,11 @@ class Post extends Model {
 	/**
 	 * Method for determining if the data should be considered private or not
 	 *
-	 * @param WP_Post $post_object The object of the post we need to verify permissions for
+	 * @param \WP_Post $post_object The object of the post we need to verify permissions for
 	 *
 	 * @return bool
 	 */
 	protected function is_post_private( $post_object = null ) {
-
 		$post_type_object = $this->post_type_object;
 
 		if ( ! $post_type_object ) {
@@ -403,18 +401,13 @@ class Post extends Model {
 		}
 
 		return false;
-
 	}
 
 	/**
-	 * Initialize the Post object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
 				'ID'                        => function () {
 					return $this->data->ID;
@@ -441,14 +434,12 @@ class Post extends Model {
 					return ! empty( $this->data->post_type ) ? $this->data->post_type : null;
 				},
 				'authorId'                  => function () {
-
 					if ( true === $this->isPreview ) {
 						$parent_post = get_post( $this->data->post_parent );
 						if ( empty( $parent_post ) ) {
 							return null;
 						}
 						$id = (int) $parent_post->post_author;
-
 					} else {
 						$id = ! empty( $this->data->post_author ) ? (int) $this->data->post_author : null;
 					}
@@ -466,7 +457,6 @@ class Post extends Model {
 					}
 
 					return ! empty( $this->data->post_author ) ? (int) $this->data->post_author : null;
-
 				},
 				'date'                      => function () {
 					return ! empty( $this->data->post_date ) && '0000-00-00 00:00:00' !== $this->data->post_date ? Utils::prepare_date_response( $this->data->post_date_gmt, $this->data->post_date ) : null;
@@ -492,9 +482,11 @@ class Post extends Model {
 				],
 				'titleRendered'             => function () {
 					$id    = ! empty( $this->data->ID ) ? $this->data->ID : null;
-					$title = ! empty( $this->data->post_title ) ? $this->data->post_title : null;
+					$title = ! empty( $this->data->post_title ) ? $this->data->post_title : '';
 
-					return $this->html_entity_decode( apply_filters( 'the_title', $title, $id ), 'titleRendered', true );
+					$processedTitle = ! empty( $title ) ? $this->html_entity_decode( apply_filters( 'the_title', $title, $id ), 'titleRendered', true ) : '';
+
+					return empty( $processedTitle ) ? null : $processedTitle;
 				},
 				'titleRaw'                  => [
 					'callback'   => function () {
@@ -503,7 +495,7 @@ class Post extends Model {
 					'capability' => isset( $this->post_type_object->cap->edit_posts ) ? $this->post_type_object->cap->edit_posts : 'edit_posts',
 				],
 				'excerptRendered'           => function () {
-					$excerpt = ! empty( $this->data->post_excerpt ) ? $this->data->post_excerpt : null;
+					$excerpt = ! empty( $this->data->post_excerpt ) ? $this->data->post_excerpt : '';
 					$excerpt = apply_filters( 'get_the_excerpt', $excerpt, $this->data );
 
 					return $this->html_entity_decode( apply_filters( 'the_excerpt', $excerpt ), 'excerptRendered' );
@@ -527,10 +519,9 @@ class Post extends Model {
 					return ! empty( $this->data->ping_status ) ? $this->data->ping_status : null;
 				},
 				'slug'                      => function () {
-					return ! empty( $this->data->post_name ) ? $this->data->post_name : null;
+					return ! empty( $this->data->post_name ) ? urldecode( $this->data->post_name ) : null;
 				},
 				'template'                  => function () {
-
 					$registered_templates = wp_get_theme()->get_page_templates( null, $this->data->post_type );
 
 					$template = [
@@ -539,7 +530,6 @@ class Post extends Model {
 					];
 
 					if ( true === $this->isPreview ) {
-
 						$parent_post = get_post( $this->parentDatabaseId );
 
 						if ( empty( $parent_post ) ) {
@@ -563,12 +553,11 @@ class Post extends Model {
 						}
 
 						$template_name = ! empty( $template_name ) ? $template_name : 'Default';
-
 					} else {
 						if ( empty( $registered_templates ) ) {
 							return $template;
 						}
-						$post_type     = $this->data->post_type;
+
 						$set_template  = get_post_meta( $this->data->ID, '_wp_page_template', true );
 						$template_name = get_page_template_slug( $this->data->ID );
 
@@ -576,14 +565,11 @@ class Post extends Model {
 					}
 
 					if ( ! empty( $registered_templates[ $set_template ] ) ) {
-						$name          = ucwords( $registered_templates[ $set_template ] );
-						$replaced_name = preg_replace( '/[^\w]/', '', $name );
+						$name = Utils::format_type_name_for_wp_template( $registered_templates[ $set_template ], $set_template );
 
-						if ( ! empty( $replaced_name ) ) {
-							$name = $replaced_name;
-						}
-						if ( preg_match( '/^\d/', $name ) || false === strpos( strtolower( $name ), 'template' ) ) {
-							$name = 'Template_' . $name;
+						// If the name is empty, fallback to DefaultTemplate
+						if ( empty( $name ) ) {
+							$name = 'DefaultTemplate';
 						}
 
 						$template = [
@@ -624,6 +610,12 @@ class Post extends Model {
 
 					return false;
 				},
+				'hasPassword'               => function () {
+					return ! empty( $this->data->post_password );
+				},
+				'password'                  => function () {
+					return ! empty( $this->data->post_password ) ? $this->data->post_password : null;
+				},
 				'toPing'                    => function () {
 					$to_ping = get_to_ping( $this->databaseId );
 
@@ -652,7 +644,6 @@ class Post extends Model {
 					return ! empty( $edit_last ) ? absint( $edit_last ) : null;
 				},
 				'editLock'                  => function () {
-
 					require_once ABSPATH . 'wp-admin/includes/post.php';
 					if ( ! wp_check_post_lock( $this->data->ID ) ) {
 						return null;
@@ -683,7 +674,7 @@ class Post extends Model {
 						$link = get_permalink( $this->data->ID );
 					}
 
-					return ! empty( $link ) ? $link : null;
+					return ! empty( $link ) ? urldecode( $link ) : null;
 				},
 				'uri'                       => function () {
 					$uri = $this->link;
@@ -704,13 +695,12 @@ class Post extends Model {
 					return ! empty( $uri ) ? str_ireplace( home_url(), '', $uri ) : null;
 				},
 				'commentCount'              => function () {
-					return ! empty( $this->data->comment_count ) ? absint( $this->data->comment_count ) : null;
+					return ! empty( $this->data->comment_count ) ? absint( $this->data->comment_count ) : 0;
 				},
 				'featuredImageId'           => function () {
 					return ! empty( $this->featuredImageDatabaseId ) ? Relay::toGlobalId( 'post', (string) $this->featuredImageDatabaseId ) : null;
 				},
 				'featuredImageDatabaseId'   => function () {
-
 					if ( $this->isRevision ) {
 						$id = $this->parentDatabaseId;
 					} else {
@@ -721,13 +711,7 @@ class Post extends Model {
 
 					return ! empty( $thumbnail_id ) ? absint( $thumbnail_id ) : null;
 				},
-				'password'                  => [
-					'callback'   => function () {
-						return ! empty( $this->data->post_password ) ? $this->data->post_password : null;
-					},
-					'capability' => isset( $this->post_type_object->cap->edit_others_posts ) ?: 'edit_others_posts',
-				],
-				'enqueuedScriptsQueue'      => function () {
+				'enqueuedScriptsQueue'      => static function () {
 					global $wp_scripts;
 					do_action( 'wp_enqueue_scripts' );
 					$queue = $wp_scripts->queue;
@@ -736,7 +720,7 @@ class Post extends Model {
 
 					return $queue;
 				},
-				'enqueuedStylesheetsQueue'  => function () {
+				'enqueuedStylesheetsQueue'  => static function () {
 					global $wp_styles;
 					do_action( 'wp_enqueue_scripts' );
 					$queue = $wp_styles->queue;
@@ -822,14 +806,18 @@ class Post extends Model {
 						return wp_attachment_is_image( $this->data->ID ) ? 'image' : 'file';
 					},
 					'mediaItemUrl'        => function () {
-						return wp_get_attachment_url( $this->data->ID );
+						return wp_get_attachment_url( $this->data->ID ) ?: null;
 					},
 					'sourceUrl'           => function () {
-						$source_url = wp_get_attachment_image_src( $this->data->ID, 'full' );
-
-						return ! empty( $source_url ) ? $source_url[0] : null;
+						return $this->get_source_url_by_size( 'full' );
 					},
 					'sourceUrlsBySize'    => function () {
+						_doing_it_wrong(
+							__METHOD__,
+							'`sourceUrlsBySize` is deprecated. Use the `sourceUrlBySize` callable instead.',
+							'@todo'
+						);
+
 						/**
 						 * This returns an empty array on the VIP Go platform.
 						 */
@@ -837,8 +825,7 @@ class Post extends Model {
 						$urls  = [];
 						if ( ! empty( $sizes ) && is_array( $sizes ) ) {
 							foreach ( $sizes as $size ) {
-								$img_src       = wp_get_attachment_image_src( $this->data->ID, $size );
-								$urls[ $size ] = ! empty( $img_src ) ? $img_src[0] : null;
+								$urls[ $size ] = $this->get_source_url_by_size( $size );
 							}
 						}
 
@@ -870,10 +857,30 @@ class Post extends Model {
 				$this->fields[ $type_id ] = function () {
 					return absint( $this->data->ID );
 				};
-			};
-
+			}
 		}
-
 	}
 
+	/**
+	 * Gets the source URL for an image attachment by size.
+	 *
+	 * This method caches the source URL for a given size to prevent multiple calls to `wp_get_attachment_image_src`.
+	 *
+	 * @param ?string $size The size of the image to get the source URL for. `full` by default.
+	 */
+	public function get_source_url_by_size( ?string $size = 'full' ): ?string {
+		// If size is not set, default to 'full'.
+		if ( ! $size ) {
+			$size = 'full';
+		}
+
+		// Resolve the source URL for the size if it hasn't been resolved yet.
+		if ( ! array_key_exists( $size, $this->source_urls_by_size ) ) {
+			$src = wp_get_attachment_image_src( $this->data->ID, $size );
+
+			$this->source_urls_by_size[ $size ] = ! empty( $src ) ? $src[0] : null;
+		}
+
+		return $this->source_urls_by_size[ $size ];
+	}
 }

@@ -2,9 +2,7 @@
 
 namespace WPGraphQL\Model;
 
-use Exception;
 use GraphQLRelay\Relay;
-use WP_Post;
 use WP_Taxonomy;
 use WP_Term;
 
@@ -24,7 +22,6 @@ use WP_Term;
  * @property string $link
  * @property string $parentId
  * @property int    $parentDatabaseId
- * @property array  $ancestors
  *
  * @package WPGraphQL\Model
  */
@@ -33,31 +30,30 @@ class Term extends Model {
 	/**
 	 * Stores the incoming WP_Term object
 	 *
-	 * @var WP_Term $data
+	 * @var \WP_Term $data
 	 */
 	protected $data;
 
 	/**
 	 * Stores the taxonomy object for the term being modeled
 	 *
-	 * @var null|WP_Taxonomy $taxonomy_object
+	 * @var \WP_Taxonomy|null $taxonomy_object
 	 */
 	protected $taxonomy_object;
 
 	/**
 	 * The global Post instance
 	 *
-	 * @var WP_Post
+	 * @var \WP_Post
 	 */
 	protected $global_post;
 
 	/**
 	 * Term constructor.
 	 *
-	 * @param WP_Term $term The incoming WP_Term object that needs modeling
+	 * @param \WP_Term $term The incoming WP_Term object that needs modeling
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	public function __construct( WP_Term $term ) {
 		$this->data            = $term;
@@ -67,12 +63,9 @@ class Term extends Model {
 	}
 
 	/**
-	 * Setup the global state for the model to have proper context when resolving
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	public function setup() {
-
 		global $wp_query, $post;
 
 		/**
@@ -111,10 +104,7 @@ class Term extends Model {
 	}
 
 	/**
-	 * Reset global state after the model fields
-	 * have been generated
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	public function tear_down() {
 		$GLOBALS['post'] = $this->global_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
@@ -122,14 +112,10 @@ class Term extends Model {
 	}
 
 	/**
-	 * Initializes the Term object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
 				'id'                       => function () {
 					return ( ! empty( $this->data->taxonomy ) && ! empty( $this->data->term_id ) ) ? Relay::toGlobalId( 'term', (string) $this->data->term_id ) : null;
@@ -150,7 +136,7 @@ class Term extends Model {
 					return ! empty( $this->data->name ) ? $this->html_entity_decode( $this->data->name, 'name', true ) : null;
 				},
 				'slug'                     => function () {
-					return ! empty( $this->data->slug ) ? $this->data->slug : null;
+					return ! empty( $this->data->slug ) ? urldecode( $this->data->slug ) : null;
 				},
 				'termGroupId'              => function () {
 					return ! empty( $this->data->term_group ) ? absint( $this->data->term_group ) : null;
@@ -172,7 +158,7 @@ class Term extends Model {
 				'parentDatabaseId'         => function () {
 					return ! empty( $this->data->parent ) ? $this->data->parent : null;
 				},
-				'enqueuedScriptsQueue'     => function () {
+				'enqueuedScriptsQueue'     => static function () {
 					global $wp_scripts;
 					$wp_scripts->reset();
 					do_action( 'wp_enqueue_scripts' );
@@ -182,7 +168,7 @@ class Term extends Model {
 
 					return $queue;
 				},
-				'enqueuedStylesheetsQueue' => function () {
+				'enqueuedStylesheetsQueue' => static function () {
 					global $wp_styles;
 					do_action( 'wp_enqueue_scripts' );
 					$queue = $wp_styles->queue;
@@ -192,15 +178,18 @@ class Term extends Model {
 					return $queue;
 				},
 				'uri'                      => function () {
-					$link = get_term_link( $this->name );
+					$link = $this->link;
 
-					if ( is_wp_error( $link ) ) {
-						return null;
+					$maybe_url = wp_parse_url( $link );
+
+					// If this isn't a URL, we can assume it's been filtered and just return the link value.
+					if ( false === $maybe_url ) {
+						return $link;
 					}
 
-					$stripped_link = str_ireplace( home_url(), '', $link );
-
-					return trailingslashit( $stripped_link );
+					// Replace the home_url in the link in order to return a relative uri.
+					// For subdirectory multisites, this replaces the home_url which includes the subdirectory.
+					return ! empty( $link ) ? str_ireplace( home_url(), '', $link ) : null;
 				},
 			];
 
@@ -209,7 +198,5 @@ class Term extends Model {
 				$this->fields[ $type_id ] = absint( $this->data->term_id );
 			}
 		}
-
 	}
-
 }

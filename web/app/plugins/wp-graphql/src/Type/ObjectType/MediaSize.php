@@ -23,6 +23,25 @@ class MediaSize {
 						'type'        => 'String',
 						'description' => __( 'The filename of the referenced size', 'wp-graphql' ),
 					],
+					'filePath'  => [
+						'type'        => 'String',
+						'description' => __( 'The path of the file for the referenced size (default size is full)', 'wp-graphql' ),
+						'resolve'     => static function ( $image ) {
+							if ( ! empty( $image['ID'] ) ) {
+								$original_file  = get_attached_file( absint( $image['ID'] ) );
+								$attachment_url = wp_get_attachment_url( $image['ID'] );
+
+								if ( ! empty( $original_file ) && ! empty( $image['file'] ) && ! empty( $attachment_url ) ) {
+									// Return the relative path for the specific size
+									return path_join( dirname( wp_make_link_relative( $attachment_url ) ), $image['file'] );
+								}
+							} elseif ( ! empty( $image['file'] ) ) {
+								return wp_make_link_relative( $image['file'] );
+							}
+
+							return null;
+						},
+					],
 					'width'     => [
 						'type'        => 'String',
 						'description' => __( 'The width of the referenced size', 'wp-graphql' ),
@@ -34,32 +53,28 @@ class MediaSize {
 					'mimeType'  => [
 						'type'        => 'String',
 						'description' => __( 'The mime type of the referenced size', 'wp-graphql' ),
-						'resolve'     => function ( $image, $args, $context, $info ) {
+						'resolve'     => static function ( $image ) {
 							return ! empty( $image['mime-type'] ) ? $image['mime-type'] : null;
 						},
 					],
 					'fileSize'  => [
 						'type'        => 'Int',
 						'description' => __( 'The filesize of the resource', 'wp-graphql' ),
-						'resolve'     => function ( $image, $args, $context, $info ) {
-
-							$src_url = null;
-
+						'resolve'     => static function ( $image ) {
 							if ( ! empty( $image['ID'] ) && ! empty( $image['file'] ) ) {
 								$original_file = get_attached_file( absint( $image['ID'] ) );
 								$filesize_path = ! empty( $original_file ) ? path_join( dirname( $original_file ), $image['file'] ) : null;
+
 								return ! empty( $filesize_path ) ? filesize( $filesize_path ) : null;
 							}
 
 							return null;
-
 						},
 					],
 					'sourceUrl' => [
 						'type'        => 'String',
 						'description' => __( 'The url of the referenced size', 'wp-graphql' ),
-						'resolve'     => function ( $image, $args, $context, $info ) {
-
+						'resolve'     => static function ( $image ) {
 							$src_url = null;
 
 							if ( ! empty( $image['ID'] ) ) {
@@ -77,6 +92,5 @@ class MediaSize {
 				],
 			]
 		);
-
 	}
 }

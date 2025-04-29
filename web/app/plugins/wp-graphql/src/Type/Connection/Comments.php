@@ -2,7 +2,6 @@
 
 namespace WPGraphQL\Type\Connection;
 
-use Exception;
 use WPGraphQL\Data\Connection\CommentConnectionResolver;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Model\Comment;
@@ -23,7 +22,7 @@ class Comments {
 	 * Connections from Post Objects to Comments are handled in \Registry\Utils\PostObject.
 	 *
 	 * @return void
-	 * @throws Exception
+	 * @throws \Exception
 	 */
 	public static function register_connections() {
 
@@ -35,28 +34,36 @@ class Comments {
 		/**
 		 * Register connection from User to Comments
 		 */
-		register_graphql_connection( self::get_connection_config( [
-			'fromType' => 'User',
-			'resolve'  => function ( User $user, $args, $context, $info ) {
-				$resolver = new CommentConnectionResolver( $user, $args, $context, $info );
+		register_graphql_connection(
+			self::get_connection_config(
+				[
+					'fromType' => 'User',
+					'resolve'  => static function ( User $user, $args, $context, $info ) {
+						$resolver = new CommentConnectionResolver( $user, $args, $context, $info );
 
-				return $resolver->set_query_arg( 'user_id', absint( $user->userId ) )->get_connection();
-			},
+						return $resolver->set_query_arg( 'user_id', absint( $user->userId ) )->get_connection();
+					},
 
-		] ) );
+				]
+			)
+		);
 
-		register_graphql_connection( self::get_connection_config( [
-			'fromType'           => 'Comment',
-			'toType'             => 'Comment',
-			'fromFieldName'      => 'parent',
-			'connectionTypeName' => 'CommentToParentCommentConnection',
-			'oneToOne'           => true,
-			'resolve'            => function ( Comment $comment, $args, $context, $info ) {
-				$resolver = new CommentConnectionResolver( $comment, $args, $context, $info );
+		register_graphql_connection(
+			self::get_connection_config(
+				[
+					'fromType'           => 'Comment',
+					'toType'             => 'Comment',
+					'fromFieldName'      => 'parent',
+					'connectionTypeName' => 'CommentToParentCommentConnection',
+					'oneToOne'           => true,
+					'resolve'            => static function ( Comment $comment, $args, $context, $info ) {
+						$resolver = new CommentConnectionResolver( $comment, $args, $context, $info );
 
-				return ! empty( $comment->comment_parent_id ) ? $resolver->one_to_one()->set_query_arg( 'comment__in', [ $comment->comment_parent_id ] )->get_connection() : null;
-			},
-		] ) );
+						return ! empty( $comment->comment_parent_id ) ? $resolver->one_to_one()->set_query_arg( 'comment__in', [ $comment->comment_parent_id ] )->get_connection() : null;
+					},
+				]
+			)
+		);
 
 		/**
 		 * Register connection from Comment to children comments
@@ -66,7 +73,7 @@ class Comments {
 				[
 					'fromType'      => 'Comment',
 					'fromFieldName' => 'replies',
-					'resolve'       => function ( Comment $comment, $args, $context, $info ) {
+					'resolve'       => static function ( Comment $comment, $args, $context, $info ) {
 						$resolver = new CommentConnectionResolver( $comment, $args, $context, $info );
 
 						return $resolver->set_query_arg( 'parent', absint( $comment->commentId ) )->get_connection();
@@ -80,9 +87,9 @@ class Comments {
 	 * Given an array of $args, this returns the connection config, merging the provided args
 	 * with the defaults
 	 *
-	 * @param array $args
+	 * @param array<string,mixed> $args
 	 *
-	 * @return array
+	 * @return array<string,mixed>
 	 */
 	public static function get_connection_config( $args = [] ) {
 		$defaults = [
@@ -90,7 +97,7 @@ class Comments {
 			'toType'         => 'Comment',
 			'fromFieldName'  => 'comments',
 			'connectionArgs' => self::get_connection_args(),
-			'resolve'        => function ( $root, $args, $context, $info ) {
+			'resolve'        => static function ( $root, $args, $context, $info ) {
 				return DataSource::resolve_comments_connection( $root, $args, $context, $info );
 			},
 		];
@@ -101,7 +108,7 @@ class Comments {
 	/**
 	 * This returns the connection args for the Comment connection
 	 *
-	 * @return array
+	 * @return array<string,array<string,mixed>>
 	 */
 	public static function get_connection_args() {
 		return [
@@ -244,8 +251,13 @@ class Comments {
 				'description' => __( 'Search term(s) to retrieve matching comments for.', 'wp-graphql' ),
 			],
 			'status'             => [
-				'type'        => 'String',
-				'description' => __( 'Comment status to limit results by.', 'wp-graphql' ),
+				'type'              => 'String',
+				'description'       => __( 'Comment status to limit results by.', 'wp-graphql' ),
+				'deprecationReason' => __( 'Deprecated in favor of statusIn which accepts a list of one or more CommentStatusEnum values instead of a string', 'wp-graphql' ),
+			],
+			'statusIn'           => [
+				'type'        => [ 'list_of' => 'CommentStatusEnum' ],
+				'description' => __( 'One or more Comment Statuses to limit results by', 'wp-graphql' ),
 			],
 			'userId'             => [
 				'type'        => 'ID',
