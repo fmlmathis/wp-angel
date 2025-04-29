@@ -12,32 +12,22 @@ class AvatarRatingEnum {
 		register_graphql_enum_type(
 			'AvatarRatingEnum',
 			[
-				'description' => static function () {
-					return __( 'Content rating filter for user avatars. Determines the maximum maturity level of avatars to display, following standard content rating classifications (G, PG, R, X).', 'wp-graphql' );
-				},
+				'description' => __( "What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are judged in that order. Default is the value of the 'avatar_rating' option", 'wp-graphql' ),
 				'values'      => [
 					'G'  => [
-						'description' => static function () {
-							return __( 'Indicates a G level avatar rating level.', 'wp-graphql' );
-						},
+						'description' => 'Indicates a G level avatar rating level.',
 						'value'       => 'G',
 					],
 					'PG' => [
-						'description' => static function () {
-							return __( 'Indicates a PG level avatar rating level.', 'wp-graphql' );
-						},
+						'description' => 'Indicates a PG level avatar rating level.',
 						'value'       => 'PG',
 					],
 					'R'  => [
-						'description' => static function () {
-							return __( 'Indicates an R level avatar rating level.', 'wp-graphql' );
-						},
+						'description' => 'Indicates an R level avatar rating level.',
 						'value'       => 'R',
 					],
 					'X'  => [
-						'description' => static function () {
-							return __( 'Indicates an X level avatar rating level.', 'wp-graphql' );
-						},
+						'description' => 'Indicates an X level avatar rating level.',
 						'value'       => 'X',
 					],
 				],

@@ -5,13 +5,20 @@ namespace WPGraphQL\Data\Connection;
  * Class ContentTypeConnectionResolver
  *
  * @package WPGraphQL\Data\Connection
- * @extends \WPGraphQL\Data\Connection\AbstractConnectionResolver<string[]>
  */
 class ContentTypeConnectionResolver extends AbstractConnectionResolver {
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @var array
+	 */
+	protected $query;
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public function get_ids_from_query() {
+
 		$ids     = [];
 		$queried = $this->query;
 
@@ -29,39 +36,58 @@ class ContentTypeConnectionResolver extends AbstractConnectionResolver {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function prepare_query_args( array $args ): array {
+	public function get_query_args() {
 		// If any args are added to filter/sort the connection
 		return [];
 	}
 
+
 	/**
-	 * {@inheritDoc}
+	 * Get the items from the source
+	 *
+	 * @return array
 	 */
-	protected function query( array $query_args ) {
-		if ( isset( $query_args['contentTypeNames'] ) && is_array( $query_args['contentTypeNames'] ) ) {
-			return $query_args['contentTypeNames'];
+	public function get_query() {
+
+		if ( isset( $this->query_args['contentTypeNames'] ) && is_array( $this->query_args['contentTypeNames'] ) ) {
+			return $this->query_args['contentTypeNames'];
 		}
 
-		if ( isset( $query_args['name'] ) ) {
-			return [ $query_args['name'] ];
+		if ( isset( $this->query_args['name'] ) ) {
+			return [ $this->query_args['name'] ];
 		}
 
+		$query_args = $this->query_args;
 		return \WPGraphQL::get_allowed_post_types( 'names', $query_args );
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * The name of the loader to load the data
+	 *
+	 * @return string
 	 */
-	protected function loader_name(): string {
+	public function get_loader_name() {
 		return 'post_type';
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Determine if the offset used for pagination is valid
 	 *
-	 * @param string $offset The offset (post type name) to check.
+	 * @param mixed $offset
+	 *
+	 * @return bool
 	 */
 	public function is_valid_offset( $offset ) {
 		return (bool) get_post_type_object( $offset );
 	}
+
+	/**
+	 * Determine if the query should execute
+	 *
+	 * @return bool
+	 */
+	public function should_execute() {
+		return true;
+	}
+
 }

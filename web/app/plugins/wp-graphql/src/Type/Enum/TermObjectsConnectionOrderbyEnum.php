@@ -12,51 +12,35 @@ class TermObjectsConnectionOrderbyEnum {
 		register_graphql_enum_type(
 			'TermObjectsConnectionOrderbyEnum',
 			[
-				'description' => static function () {
-					return __( 'Sorting attributes for taxonomy term collections. Determines which property of taxonomy terms is used for ordering results.', 'wp-graphql' );
-				},
+				'description' => __( 'Options for ordering the connection by', 'wp-graphql' ),
 				'values'      => [
-					'COUNT'       => [
-						'value'       => 'count',
-						'description' => static function () {
-							return __( 'Ordering by number of associated content items.', 'wp-graphql' );
-						},
-					],
-					'DESCRIPTION' => [
-						'value'       => 'description',
-						'description' => static function () {
-							return __( 'Alphabetical ordering by term description text.', 'wp-graphql' );
-						},
-					],
 					'NAME'        => [
 						'value'       => 'name',
-						'description' => static function () {
-							return __( 'Alphabetical ordering by term name.', 'wp-graphql' );
-						},
+						'description' => __( 'Order the connection by name.', 'wp-graphql' ),
 					],
 					'SLUG'        => [
 						'value'       => 'slug',
-						'description' => static function () {
-							return __( 'Alphabetical ordering by URL-friendly name.', 'wp-graphql' );
-						},
+						'description' => __( 'Order the connection by slug.', 'wp-graphql' ),
 					],
 					'TERM_GROUP'  => [
 						'value'       => 'term_group',
-						'description' => static function () {
-							return __( 'Ordering by assigned term grouping value.', 'wp-graphql' );
-						},
+						'description' => __( 'Order the connection by term group.', 'wp-graphql' ),
 					],
 					'TERM_ID'     => [
 						'value'       => 'term_id',
-						'description' => static function () {
-							return __( 'Ordering by internal identifier.', 'wp-graphql' );
-						},
+						'description' => __( 'Order the connection by term id.', 'wp-graphql' ),
 					],
 					'TERM_ORDER'  => [
 						'value'       => 'term_order',
-						'description' => static function () {
-							return __( 'Ordering by manually defined sort position.', 'wp-graphql' );
-						},
+						'description' => __( 'Order the connection by term order.', 'wp-graphql' ),
+					],
+					'DESCRIPTION' => [
+						'value'       => 'description',
+						'description' => __( 'Order the connection by description.', 'wp-graphql' ),
+					],
+					'COUNT'       => [
+						'value'       => 'count',
+						'description' => __( 'Order the connection by item count.', 'wp-graphql' ),
 					],
 				],
 			]

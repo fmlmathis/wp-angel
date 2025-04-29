@@ -4,10 +4,11 @@ namespace WPGraphQL\Server\ValidationRules;
 
 use GraphQL\Error\Error;
 use GraphQL\Language\AST\FieldNode;
-use GraphQL\Language\AST\Node;
 use GraphQL\Language\AST\NodeKind;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Validator\Rules\QuerySecurityRule;
+use GraphQL\Validator\ValidationContext;
+use WPGraphQL\AppContext;
 
 /**
  * Class RequireAuthentication
@@ -17,9 +18,10 @@ use GraphQL\Validator\Rules\QuerySecurityRule;
 class RequireAuthentication extends QuerySecurityRule {
 
 	/**
-	 * Whether the rule is enabled or not.
+	 * @return bool
 	 */
-	protected function isEnabled(): bool {
+	protected function isEnabled() {
+
 		$restrict_endpoint = null;
 
 		/**
@@ -27,7 +29,7 @@ class RequireAuthentication extends QuerySecurityRule {
 		 * than null will skip the default restrict checks.
 		 *
 		 * @param bool|null $restrict_endpoint Whether to restrict the endpoint. Defaults to null
-		 */
+		*/
 		$restrict_endpoint = apply_filters( 'graphql_pre_restrict_endpoint', $restrict_endpoint );
 
 		if ( null !== $restrict_endpoint ) {
@@ -57,62 +59,52 @@ class RequireAuthentication extends QuerySecurityRule {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param ValidationContext $context
 	 *
-	 * @param \GraphQL\Validator\QueryValidationContext $context
-	 *
-	 * @return array<string,array<string,callable(\GraphQL\Language\AST\Node): (\GraphQL\Language\VisitorOperation|void|false|null)>|(callable(\GraphQL\Language\AST\Node): (\GraphQL\Language\VisitorOperation|void|false|null))>
+	 * @return callable[]|mixed[]
 	 */
-	public function getVisitor( \GraphQL\Validator\QueryValidationContext $context ): array {
+	public function getVisitor( ValidationContext $context ) {
+
 		$allowed_root_fields = [];
 
 		/**
-		 * Filters the allowed root fields
+		 * Filters the allowed
 		 *
-		 * @param string[]                                    $allowed_root_fields The Root fields allowed to be requested without authentication
-		 * @param \GraphQL\Validator\QueryValidationContext  $context The Validation context of the field being executed.
+		 * @param array             $allowed_root_fields The Root fields allowed to be requested without authentication
+		 * @param ValidationContext $context             The Validation context of the field being executed.
 		 */
 		$allowed_root_fields = apply_filters( 'graphql_require_authentication_allowed_fields', $allowed_root_fields, $context );
-
-		/**
-		 * @param \GraphQL\Language\AST\Node $node
-		 * @return void
-		 */
-		$field_validator = static function ( Node $node ) use ( $context, $allowed_root_fields ): void {
-			// If not a FieldNode, return early
-			if ( ! $node instanceof FieldNode ) {
-				return;
-			}
-
-			$parent_type = $context->getParentType();
-
-			if ( ! $parent_type instanceof Type || empty( $parent_type->name ) ) {
-				return;
-			}
-
-			if ( ! in_array( $parent_type->name, [ 'RootQuery', 'RootSubscription', 'RootMutation' ], true ) ) {
-				return;
-			}
-
-			if ( empty( $allowed_root_fields ) || ! is_array( $allowed_root_fields ) || ! in_array( $node->name->value, $allowed_root_fields, true ) ) {
-				$context->reportError(
-					new Error(
-						sprintf(
-						// translators: %s is the field name
-							__( 'The field "%s" cannot be accessed without authentication.', 'wp-graphql' ),
-							$context->getParentType() . '.' . $node->name->value
-						),
-						[ $node ]
-					)
-				);
-			}
-		};
 
 		return $this->invokeIfNeeded(
 			$context,
 			[
-				NodeKind::FIELD => $field_validator,
+				NodeKind::FIELD => static function ( FieldNode $node ) use ( $context, $allowed_root_fields ) {
+
+					$parent_type = $context->getParentType();
+
+					if ( ! $parent_type instanceof Type || empty( $parent_type->name ) ) {
+						return;
+					}
+
+					if ( ! in_array( $parent_type->name, [ 'RootQuery', 'RootSubscription', 'RootMutation' ], true ) ) {
+						return;
+					}
+
+					if ( empty( $allowed_root_fields ) || ! is_array( $allowed_root_fields ) || ! in_array( $node->name->value, $allowed_root_fields, true ) ) {
+						$context->reportError(
+							new Error(
+								sprintf(
+									__( 'The field "%s" cannot be accessed without authentication.', 'wp-graphql' ),
+									$context->getParentType() . '.' . $node->name->value
+								),
+								//@phpstan-ignore-next-line
+								[ $node ]
+							)
+						);
+					}
+				},
 			]
 		);
 	}
+
 }

@@ -20,13 +20,7 @@ class MenuLocationEnum {
 			foreach ( $locations as $location ) {
 				$values[ WPEnumType::get_safe_name( $location ) ] = [
 					'value'       => $location,
-					'description' => static function () use ( $location ) {
-						return sprintf(
-							// translators: %s is the menu location name.
-							__( 'Put the menu in the %s location', 'wp-graphql' ),
-							$location
-						);
-					},
+					'description' => sprintf( __( 'Put the menu in the %s location', 'wp-graphql' ), $location ),
 				];
 			}
 		}
@@ -34,18 +28,14 @@ class MenuLocationEnum {
 		if ( empty( $values ) ) {
 			$values['EMPTY'] = [
 				'value'       => 'Empty menu location',
-				'description' => static function () {
-					return __( 'Empty menu location', 'wp-graphql' );
-				},
+				'description' => __( 'Empty menu location', 'wp-graphql' ),
 			];
 		}
 
 		register_graphql_enum_type(
 			'MenuLocationEnum',
 			[
-				'description' => static function () {
-					return __( 'Designated areas where navigation menus can be displayed. Represents the named regions in the interface where menus can be assigned.', 'wp-graphql' );
-				},
+				'description' => __( 'Registered menu locations', 'wp-graphql' ),
 				'values'      => $values,
 			]
 		);

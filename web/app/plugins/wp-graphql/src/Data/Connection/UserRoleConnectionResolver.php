@@ -9,18 +9,23 @@ use WPGraphQL\Model\User;
  *
  * @package WPGraphQL\Data\Resolvers
  * @since   0.0.5
- * @extends \WPGraphQL\Data\Connection\AbstractConnectionResolver<string[]>
  */
 class UserRoleConnectionResolver extends AbstractConnectionResolver {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @var array
+	 */
+	protected $query;
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public function get_ids_from_query() {
 
 		// Given a list of role slugs
-		$query_args = $this->get_query_args();
-		if ( isset( $query_args['slugIn'] ) ) {
-			return $query_args['slugIn'];
+		if ( isset( $this->query_args['slugIn'] ) ) {
+			return $this->query_args['slugIn'];
 		}
 
 		$ids     = [];
@@ -40,43 +45,49 @@ class UserRoleConnectionResolver extends AbstractConnectionResolver {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function prepare_query_args( array $args ): array {
+	public function get_query_args() {
 		// If any args are added to filter/sort the connection
 		return [];
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @return array
 	 */
-	protected function query( array $query_args ) {
+	public function get_query() {
 		$wp_roles = wp_roles();
+		$roles    = ! empty( $wp_roles->get_names() ) ? array_keys( $wp_roles->get_names() ) : [];
 
-		return ! empty( $wp_roles->get_names() ) ? array_keys( $wp_roles->get_names() ) : [];
+		return $roles;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	protected function loader_name(): string {
+	public function get_loader_name() {
 		return 'user_role';
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param mixed $offset Whether the provided offset is valid for the connection
+	 *
+	 * @return bool
 	 */
 	public function is_valid_offset( $offset ) {
 		return (bool) get_role( $offset );
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @return bool
 	 */
 	public function should_execute() {
+
 		if (
 			current_user_can( 'list_users' ) ||
 			(
 				$this->source instanceof User &&
-				get_current_user_id() === $this->source->databaseId
+				get_current_user_id() === $this->source->userId
 			)
 		) {
 			return true;
@@ -84,4 +95,5 @@ class UserRoleConnectionResolver extends AbstractConnectionResolver {
 
 		return false;
 	}
+
 }

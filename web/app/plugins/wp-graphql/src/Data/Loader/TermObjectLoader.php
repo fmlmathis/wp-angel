@@ -2,6 +2,8 @@
 
 namespace WPGraphQL\Data\Loader;
 
+use Exception;
+use GraphQL\Deferred;
 use WPGraphQL\Model\Menu;
 use WPGraphQL\Model\Term;
 
@@ -13,20 +15,21 @@ use WPGraphQL\Model\Term;
 class TermObjectLoader extends AbstractDataLoader {
 
 	/**
-	 * {@inheritDoc}
+	 * @param mixed $entry The User Role object
+	 * @param mixed $key The Key to identify the user role by
 	 *
-	 * @param mixed|\WP_Term $entry The Term Object
-	 *
-	 * @return \WPGraphQL\Model\Term|\WPGraphQL\Model\Menu|null
-	 * @throws \Exception
+	 * @return mixed|Term
+	 * @throws Exception
 	 */
 	protected function get_model( $entry, $key ) {
+
 		if ( is_a( $entry, 'WP_Term' ) ) {
 
 			/**
 			 * For nav_menu terms, we want to pass through a different model
 			 */
 			if ( 'nav_menu' === $entry->taxonomy ) {
+
 				$menu = new Menu( $entry );
 				if ( empty( $menu->fields ) ) {
 					return null;
@@ -34,6 +37,7 @@ class TermObjectLoader extends AbstractDataLoader {
 					return $menu;
 				}
 			} else {
+
 				$term = new Term( $entry );
 				if ( empty( $term->fields ) ) {
 					return null;
@@ -46,13 +50,22 @@ class TermObjectLoader extends AbstractDataLoader {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Given array of keys, loads and returns a map consisting of keys from `keys` array and loaded
+	 * posts as the values
+	 *
+	 * Note that order of returned values must match exactly the order of keys.
+	 * If some entry is not available for given key - it must include null for the missing key.
+	 *
+	 * For example:
+	 * loadKeys(['a', 'b', 'c']) -> ['a' => 'value1, 'b' => null, 'c' => 'value3']
 	 *
 	 * @param int[] $keys
 	 *
-	 * @return array<int,\WP_Term|\WP_Error|null>
+	 * @return array
+	 * @throws Exception
 	 */
 	public function loadKeys( array $keys ) {
+
 		if ( empty( $keys ) ) {
 			return $keys;
 		}
@@ -92,8 +105,11 @@ class TermObjectLoader extends AbstractDataLoader {
 			 * object isn't in the cache, meaning it didn't come back when queried.
 			 */
 			$loaded[ $key ] = get_term( (int) $key );
+
 		}
 
 		return $loaded;
+
 	}
+
 }

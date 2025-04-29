@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Mutation;
 
+use Exception;
 use GraphQL\Error\UserError;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Registry\TypeRegistry;
@@ -17,7 +18,7 @@ class UpdateSettings {
 	/**
 	 * Registers the CommentCreate mutation.
 	 *
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry The WPGraphQL TypeRegistry
+	 * @param TypeRegistry $type_registry The WPGraphQL TypeRegistry
 	 *
 	 * @return void
 	 */
@@ -34,7 +35,7 @@ class UpdateSettings {
 			[
 				'inputFields'         => $input_fields,
 				'outputFields'        => $output_fields,
-				'mutateAndGetPayload' => static function ( $input ) use ( $type_registry ) {
+				'mutateAndGetPayload' => function ( $input ) use ( $type_registry ) {
 					return self::mutate_and_get_payload( $input, $type_registry );
 				},
 			]
@@ -44,9 +45,9 @@ class UpdateSettings {
 	/**
 	 * Defines the mutation input field configuration.
 	 *
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry The WPGraphQL TypeRegistry
+	 * @param TypeRegistry $type_registry The WPGraphQL TypeRegistry
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_input_fields( TypeRegistry $type_registry ) {
 		$allowed_settings = DataSource::get_allowed_settings( $type_registry );
@@ -60,6 +61,7 @@ class UpdateSettings {
 			 * for the individual settings
 			 */
 			foreach ( $allowed_settings as $key => $setting ) {
+
 				if ( ! isset( $setting['type'] ) || ! $type_registry->get_type( $setting['type'] ) ) {
 					continue;
 				}
@@ -75,7 +77,7 @@ class UpdateSettings {
 					$individual_setting_key = lcfirst( $setting['group'] . 'Settings' . str_replace( '_', '', ucwords( $key, '_' ) ) );
 				}
 
-				$replaced_setting_key = graphql_format_name( $individual_setting_key, ' ', '/[^a-zA-Z0-9 -]/' );
+				$replaced_setting_key = preg_replace( '[^a-zA-Z0-9 -]', ' ', $individual_setting_key );
 
 				if ( ! empty( $replaced_setting_key ) ) {
 					$individual_setting_key = $replaced_setting_key;
@@ -103,9 +105,9 @@ class UpdateSettings {
 	/**
 	 * Defines the mutation output field configuration.
 	 *
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry The WPGraphQL TypeRegistry
+	 * @param TypeRegistry $type_registry The WPGraphQL TypeRegistry
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_output_fields( TypeRegistry $type_registry ) {
 
@@ -121,30 +123,26 @@ class UpdateSettings {
 		 */
 		$output_fields['allSettings'] = [
 			'type'        => 'Settings',
-			'description' => static function () {
-				return __( 'Update all settings.', 'wp-graphql' );
-			},
-			'resolve'     => static function () {
+			'description' => __( 'Update all settings.', 'wp-graphql' ),
+			'resolve'     => function () {
 				return true;
 			},
 		];
 
 		if ( ! empty( $allowed_setting_groups ) && is_array( $allowed_setting_groups ) ) {
 			foreach ( $allowed_setting_groups as $group => $setting_type ) {
+
 				$setting_type      = DataSource::format_group_name( $group );
 				$setting_type_name = Utils::format_type_name( $setting_type . 'Settings' );
 
 				$output_fields[ Utils::format_field_name( $setting_type_name ) ] = [
 					'type'        => $setting_type_name,
-					// translators: %s is the setting type name
-					'description' => static function () use ( $setting_type_name ) {
-						// translators: %s is the setting type name
-						return sprintf( __( 'Update the %s setting.', 'wp-graphql' ), $setting_type_name );
-					},
-					'resolve'     => static function () use ( $setting_type_name ) {
+					'description' => sprintf( __( 'Update the %s setting.', 'wp-graphql' ), $setting_type_name ),
+					'resolve'     => function () use ( $setting_type_name ) {
 						return $setting_type_name;
 					},
 				];
+
 			}
 		}
 		return $output_fields;
@@ -153,19 +151,19 @@ class UpdateSettings {
 	/**
 	 * Defines the mutation data modification closure.
 	 *
-	 * @param array<string,mixed>              $input The mutation input
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry The WPGraphQL TypeRegistry
+	 * @param array $input The mutation input
+	 * @param TypeRegistry $type_registry The WPGraphQL TypeRegistry
 	 *
-	 * @return array<string,array<string,string>>
+	 * @return array
 	 *
-	 * @throws \GraphQL\Error\UserError
+	 * @throws UserError
 	 */
 	public static function mutate_and_get_payload( array $input, TypeRegistry $type_registry ): array {
 		/**
 		 * Check that the user can manage setting options
 		 */
 		if ( ! current_user_can( 'manage_options' ) ) {
-			throw new UserError( esc_html__( 'Sorry, you are not allowed to edit settings as this user.', 'wp-graphql' ) );
+			throw new UserError( __( 'Sorry, you are not allowed to edit settings as this user.', 'wp-graphql' ) );
 		}
 
 		/**
@@ -200,6 +198,7 @@ class UpdateSettings {
 				'option' => $key,
 				'group'  => $setting['group'],
 			];
+
 		}
 
 		foreach ( $input as $key => $value ) {
@@ -209,7 +208,7 @@ class UpdateSettings {
 			 * the things
 			 */
 			if ( 'generalSettingsUrl' === $key ) {
-				throw new UserError( esc_html__( 'Sorry, that is not allowed, speak with your site administrator to change the site URL.', 'wp-graphql' ) );
+				throw new UserError( __( 'Sorry, that is not allowed, speak with your site administrator to change the site URL.', 'wp-graphql' ) );
 			}
 
 			/**

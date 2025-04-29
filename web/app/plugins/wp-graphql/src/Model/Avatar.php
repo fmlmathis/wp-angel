@@ -2,19 +2,21 @@
 
 namespace WPGraphQL\Model;
 
+use Exception;
+
 /**
  * Class Avatar - Models data for avatars
  *
- * @property ?string $default
- * @property ?string $extraAttr
- * @property bool    $forceDefault
- * @property bool    $foundAvatar
- * @property ?int    $height
- * @property ?string $rating
- * @property ?string $scheme
- * @property ?int    $size
- * @property ?string $url
- * @property ?int    $width
+ * @property int    $size
+ * @property int    $height
+ * @property int    $width
+ * @property string $default
+ * @property bool   $forceDefault
+ * @property string $rating
+ * @property string $scheme
+ * @property string $extraAttr
+ * @property bool   $foundAvatar
+ * @property string $url
  *
  * @package WPGraphQL\Model
  */
@@ -23,14 +25,16 @@ class Avatar extends Model {
 	/**
 	 * Stores the incoming avatar to be modeled
 	 *
-	 * @var array<string,mixed>
+	 * @var array $data
 	 */
 	protected $data;
 
 	/**
 	 * Avatar constructor.
 	 *
-	 * @param array<string,mixed> $avatar The incoming avatar to be modeled.
+	 * @param array $avatar The incoming avatar to be modeled
+	 *
+	 * @throws Exception Throws Exception.
 	 */
 	public function __construct( array $avatar ) {
 		$this->data = $avatar;
@@ -38,33 +42,29 @@ class Avatar extends Model {
 	}
 
 	/**
-	 * @return bool
-	 */
-	protected function is_private() {
-		$show_avatars = get_option( 'show_avatars' );
-		return ! (bool) $show_avatars;
-	}
-
-	/**
-	 * {@inheritDoc}
+	 * Initializes the object
+	 *
+	 * @return void
 	 */
 	protected function init() {
+
 		if ( empty( $this->fields ) ) {
+
 			$this->fields = [
-				'default'      => function () {
-					return ! empty( $this->data['default'] ) ? $this->data['default'] : null;
-				},
-				'extraAttr'    => function () {
-					return ! empty( $this->data['extra_attr'] ) ? $this->data['extra_attr'] : null;
-				},
-				'forceDefault' => function () {
-					return ! empty( $this->data['force_default'] );
-				},
-				'foundAvatar'  => function () {
-					return ! empty( $this->data['found_avatar'] );
+				'size'         => function () {
+					return ! empty( $this->data['size'] ) ? absint( $this->data['size'] ) : null;
 				},
 				'height'       => function () {
 					return ! empty( $this->data['height'] ) ? absint( $this->data['height'] ) : null;
+				},
+				'width'        => function () {
+					return ! empty( $this->data['width'] ) ? absint( $this->data['width'] ) : null;
+				},
+				'default'      => function () {
+					return ! empty( $this->data['default'] ) ? $this->data['default'] : null;
+				},
+				'forceDefault' => function () {
+					return ! empty( $this->data['force_default'] );
 				},
 				'rating'       => function () {
 					return ! empty( $this->data['rating'] ) ? $this->data['rating'] : null;
@@ -72,16 +72,17 @@ class Avatar extends Model {
 				'scheme'       => function () {
 					return ! empty( $this->data['scheme'] ) ? $this->data['scheme'] : null;
 				},
-				'size'         => function () {
-					return ! empty( $this->data['size'] ) ? absint( $this->data['size'] ) : null;
+				'extraAttr'    => function () {
+					return ! empty( $this->data['extra_attr'] ) ? $this->data['extra_attr'] : null;
+				},
+				'foundAvatar'  => function () {
+					return ! empty( $this->data['found_avatar'] );
 				},
 				'url'          => function () {
 					return ! empty( $this->data['url'] ) ? $this->data['url'] : null;
 				},
-				'width'        => function () {
-					return ! empty( $this->data['width'] ) ? absint( $this->data['width'] ) : null;
-				},
 			];
+
 		}
 	}
 }

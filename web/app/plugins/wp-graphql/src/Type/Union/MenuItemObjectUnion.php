@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Type\Union;
 
+use Exception;
 use WPGraphQL\Model\Post;
 use WPGraphQL\Model\Term;
 use WPGraphQL\Registry\TypeRegistry;
@@ -17,38 +18,37 @@ class MenuItemObjectUnion {
 	/**
 	 * Registers the Type
 	 *
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry
+	 * @param TypeRegistry $type_registry
 	 *
 	 * @return void
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public static function register_type( TypeRegistry $type_registry ) {
+
 		register_graphql_union_type(
 			'MenuItemObjectUnion',
 			[
 				'typeNames'   => self::get_possible_types(),
-				'description' => static function () {
-					return __( 'Deprecated in favor of MenuItemLinkeable Interface', 'wp-graphql' );
-				},
-				'resolveType' => static function ( $obj ) use ( $type_registry ) {
+				'description' => __( 'Deprecated in favor of MenuItemLinkeable Interface', 'wp-graphql' ),
+				'resolveType' => function ( $object ) use ( $type_registry ) {
 					_doing_it_wrong( 'MenuItemObjectUnion', esc_attr__( 'The MenuItemObjectUnion GraphQL type is deprecated in favor of MenuItemLinkeable Interface', 'wp-graphql' ), '0.10.3' );
 					// Post object
-					if ( $obj instanceof Post && isset( $obj->post_type ) && ! empty( $obj->post_type ) ) {
+					if ( $object instanceof Post && isset( $object->post_type ) && ! empty( $object->post_type ) ) {
 						/** @var \WP_Post_Type $post_type_object */
-						$post_type_object = get_post_type_object( $obj->post_type );
+						$post_type_object = get_post_type_object( $object->post_type );
 
 						return $type_registry->get_type( $post_type_object->graphql_single_name );
 					}
 
 					// Taxonomy term
-					if ( $obj instanceof Term && ! empty( $obj->taxonomyName ) ) {
+					if ( $object instanceof Term && ! empty( $object->taxonomyName ) ) {
 						/** @var \WP_Taxonomy $tax_object */
-						$tax_object = get_taxonomy( $obj->taxonomyName );
+						$tax_object = get_taxonomy( $object->taxonomyName );
 
 						return $type_registry->get_type( $tax_object->graphql_single_name );
 					}
 
-					return $obj;
+					return $object;
 				},
 			]
 		);
@@ -57,7 +57,7 @@ class MenuItemObjectUnion {
 	/**
 	 * Returns a list of possible types for the union
 	 *
-	 * @return string[]
+	 * @return array
 	 */
 	public static function get_possible_types() {
 
@@ -74,6 +74,8 @@ class MenuItemObjectUnion {
 
 		/**
 		 * Add post types that are allowed in WPGraphQL.
+		 *
+		 * @var \WP_Post_Type $post_type_object
 		 */
 		foreach ( \WPGraphQL::get_allowed_post_types( 'objects', $args ) as $post_type_object ) {
 			if ( isset( $post_type_object->graphql_single_name ) ) {

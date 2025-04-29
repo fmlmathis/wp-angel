@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Type\InterfaceType;
 
+use Exception;
 use WPGraphQL\Registry\TypeRegistry;
 
 /**
@@ -14,38 +15,34 @@ class HierarchicalNode {
 	/**
 	 * Register the HierarchicalNode Interface Type
 	 *
-	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry
+	 * @param TypeRegistry $type_registry
 	 *
-	 * @throws \Exception
+	 * @return void
+	 * @throws Exception
 	 */
-	public static function register_type( TypeRegistry $type_registry ): void {
+	public static function register_type( TypeRegistry $type_registry ):void {
+
 		register_graphql_interface_type(
 			'HierarchicalNode',
 			[
-				'description' => static function () {
-					return __( 'Content that can exist in a parent-child structure. Provides fields for navigating up (parent) and down (children) through the hierarchy.', 'wp-graphql' );
-				},
+				'description' => __( 'Node with hierarchical (parent/child) relationships', 'wp-graphql' ),
 				'interfaces'  => [
 					'Node',
 					'DatabaseIdentifier',
 				],
-				'fields'      => static function () {
-					return [
-						'parentId'         => [
-							'type'        => 'ID',
-							'description' => static function () {
-								return __( 'The globally unique identifier of the parent node.', 'wp-graphql' );
-							},
-						],
-						'parentDatabaseId' => [
-							'type'        => 'Int',
-							'description' => static function () {
-								return __( 'Database id of the parent node', 'wp-graphql' );
-							},
-						],
-					];
-				},
+				'fields'      => [
+					'parentId'         => [
+						'type'        => 'ID',
+						'description' => __( 'The globally unique identifier of the parent node.', 'wp-graphql' ),
+					],
+					'parentDatabaseId' => [
+						'type'        => 'Int',
+						'description' => __( 'Database id of the parent node', 'wp-graphql' ),
+					],
+				],
 			]
 		);
+
 	}
+
 }

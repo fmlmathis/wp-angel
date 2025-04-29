@@ -2,17 +2,19 @@
 
 namespace WPGraphQL\Mutation;
 
+use Exception;
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 use WPGraphQL\Data\CommentMutation;
+use WPGraphQL\Data\DataSource;
 
 class CommentCreate {
 	/**
 	 * Registers the CommentCreate mutation.
 	 *
 	 * @return void
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -28,72 +30,50 @@ class CommentCreate {
 	/**
 	 * Defines the mutation input field configuration.
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_input_fields() {
 		return [
 			'approved'    => [
 				'type'              => 'String',
-				'description'       => static function () {
-					return __( 'The approval status of the comment.', 'wp-graphql' );
-				},
-				'deprecationReason' => static function () {
-					return __( 'Deprecated in favor of the status field', 'wp-graphql' );
-				},
+				'description'       => __( 'The approval status of the comment.', 'wp-graphql' ),
+				'deprecationReason' => __( 'Deprecated in favor of the status field', 'wp-graphql' ),
 			],
 			'author'      => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The name of the comment\'s author.', 'wp-graphql' );
-				},
+				'description' => __( 'The name of the comment\'s author.', 'wp-graphql' ),
 			],
 			'authorEmail' => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The email of the comment\'s author.', 'wp-graphql' );
-				},
+				'description' => __( 'The email of the comment\'s author.', 'wp-graphql' ),
 			],
 			'authorUrl'   => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The url of the comment\'s author.', 'wp-graphql' );
-				},
+				'description' => __( 'The url of the comment\'s author.', 'wp-graphql' ),
 			],
 			'commentOn'   => [
 				'type'        => 'Int',
-				'description' => static function () {
-					return __( 'The database ID of the post object the comment belongs to.', 'wp-graphql' );
-				},
+				'description' => __( 'The database ID of the post object the comment belongs to.', 'wp-graphql' ),
 			],
 			'content'     => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'Content of the comment.', 'wp-graphql' );
-				},
+				'description' => __( 'Content of the comment.', 'wp-graphql' ),
 			],
 			'date'        => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The date of the object. Preferable to enter as year/month/day ( e.g. 01/31/2017 ) as it will rearrange date as fit if it is not specified. Incomplete dates may have unintended results for example, "2017" as the input will use current date with timestamp 20:17 ', 'wp-graphql' );
-				},
+				'description' => __( 'The date of the object. Preferable to enter as year/month/day ( e.g. 01/31/2017 ) as it will rearrange date as fit if it is not specified. Incomplete dates may have unintended results for example, "2017" as the input will use current date with timestamp 20:17 ', 'wp-graphql' ),
 			],
 			'parent'      => [
 				'type'        => 'ID',
-				'description' => static function () {
-					return __( 'Parent comment ID of current comment.', 'wp-graphql' );
-				},
+				'description' => __( 'Parent comment ID of current comment.', 'wp-graphql' ),
 			],
 			'status'      => [
 				'type'        => 'CommentStatusEnum',
-				'description' => static function () {
-					return __( 'The approval status of the comment', 'wp-graphql' );
-				},
+				'description' => __( 'The approval status of the comment', 'wp-graphql' ),
 			],
 			'type'        => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'Type of comment.', 'wp-graphql' );
-				},
+				'description' => __( 'Type of comment.', 'wp-graphql' ),
 			],
 		];
 	}
@@ -101,21 +81,19 @@ class CommentCreate {
 	/**
 	 * Defines the mutation output field configuration.
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_output_fields() {
 		return [
 			'comment' => [
 				'type'        => 'Comment',
-				'description' => static function () {
-					return __( 'The comment that was created', 'wp-graphql' );
-				},
-				'resolve'     => static function ( $payload, $args, AppContext $context ) {
+				'description' => __( 'The comment that was created', 'wp-graphql' ),
+				'resolve'     => function ( $payload, $args, AppContext $context, ResolveInfo $info ) {
 					if ( ! isset( $payload['id'] ) || ! absint( $payload['id'] ) ) {
 						return null;
 					}
 
-					return $context->get_loader( 'comment' )->load_deferred( absint( $payload['id'] ) );
+					return DataSource::resolve_comment( absint( $payload['id'] ), $context );
 				},
 			],
 			/**
@@ -133,9 +111,7 @@ class CommentCreate {
 			 */
 			'success' => [
 				'type'        => 'Boolean',
-				'description' => static function () {
-					return __( 'Whether the mutation succeeded. If the comment is not approved, the server will not return the comment to a non authenticated user, but a success message can be returned if the create succeeded, and the client can optimistically add the comment to the client cache', 'wp-graphql' );
-				},
+				'description' => __( 'Whether the mutation succeeded. If the comment is not approved, the server will not return the comment to a non authenticated user, but a success message can be returned if the create succeeded, and the client can optimistically add the comment to the client cache', 'wp-graphql' ),
 			],
 		];
 	}
@@ -143,33 +119,33 @@ class CommentCreate {
 	/**
 	 * Defines the mutation data modification closure.
 	 *
-	 * @return callable(array<string,mixed>$input,\WPGraphQL\AppContext $context,\GraphQL\Type\Definition\ResolveInfo $info):array<string,mixed>
+	 * @return callable
 	 */
 	public static function mutate_and_get_payload() {
-		return static function ( $input, AppContext $context, ResolveInfo $info ) {
+		return function ( $input, AppContext $context, ResolveInfo $info ) {
 
 			/**
 			 * Throw an exception if there's no input
 			 */
 			if ( ( empty( $input ) || ! is_array( $input ) ) ) {
-				throw new UserError( esc_html__( 'Mutation not processed. There was no input for the mutation or the comment_object was invalid', 'wp-graphql' ) );
+				throw new UserError( __( 'Mutation not processed. There was no input for the mutation or the comment_object was invalid', 'wp-graphql' ) );
 			}
 
 			$commented_on = get_post( absint( $input['commentOn'] ) );
 
 			if ( empty( $commented_on ) ) {
-				throw new UserError( esc_html__( 'The ID of the node to comment on is invalid', 'wp-graphql' ) );
+				throw new UserError( __( 'The ID of the node to comment on is invalid', 'wp-graphql' ) );
 			}
 
 			/**
 			 * Stop if post not open to comments
 			 */
 			if ( empty( $input['commentOn'] ) || 'closed' === $commented_on->comment_status ) {
-				throw new UserError( esc_html__( 'Sorry, this post is closed to comments at the moment', 'wp-graphql' ) );
+				throw new UserError( __( 'Sorry, this post is closed to comments at the moment', 'wp-graphql' ) );
 			}
 
 			if ( '1' === get_option( 'comment_registration' ) && ! is_user_logged_in() ) {
-				throw new UserError( esc_html__( 'This site requires you to be logged in to leave a comment', 'wp-graphql' ) );
+				throw new UserError( __( 'This site requires you to be logged in to leave a comment', 'wp-graphql' ) );
 			}
 
 			/**
@@ -194,11 +170,12 @@ class CommentCreate {
 			 * Throw an exception if the comment failed to be created
 			 */
 			if ( is_wp_error( $comment_id ) ) {
+
 				$error_message = $comment_id->get_error_message();
 				if ( ! empty( $error_message ) ) {
 					throw new UserError( esc_html( $error_message ) );
 				} else {
-					throw new UserError( esc_html__( 'The object failed to create but no error was provided', 'wp-graphql' ) );
+					throw new UserError( __( 'The object failed to create but no error was provided', 'wp-graphql' ) );
 				}
 			}
 
@@ -206,7 +183,7 @@ class CommentCreate {
 			 * If the $comment_id is empty, we should throw an exception
 			 */
 			if ( empty( $comment_id ) ) {
-				throw new UserError( esc_html__( 'The object failed to create', 'wp-graphql' ) );
+				throw new UserError( __( 'The object failed to create', 'wp-graphql' ) );
 			}
 
 			/**

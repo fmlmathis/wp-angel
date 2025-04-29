@@ -2,8 +2,6 @@
 
 namespace WPGraphQL\Type\InterfaceType;
 
-use WPGraphQL\Utils\Utils;
-
 class ContentTemplate {
 
 	/**
@@ -15,20 +13,14 @@ class ContentTemplate {
 		register_graphql_interface_type(
 			'ContentTemplate',
 			[
-				'description' => static function () {
-					return __( 'A layout pattern that can help inform how content might be structured and displayed. Templates can define specialized layouts for different types of content.', 'wp-graphql' );
-				},
-				'fields'      => static function () {
-					return [
-						'templateName' => [
-							'type'        => 'String',
-							'description' => static function () {
-								return __( 'The name of the template', 'wp-graphql' );
-							},
-						],
-					];
-				},
-				'resolveType' => static function ( $value ) {
+				'description' => __( 'The template assigned to a node of content', 'wp-graphql' ),
+				'fields'      => [
+					'templateName' => [
+						'type'        => 'String',
+						'description' => __( 'The name of the template', 'wp-graphql' ),
+					],
+				],
+				'resolveType' => function ( $value ) {
 					return isset( $value['__typename'] ) ? $value['__typename'] : 'DefaultTemplate';
 				},
 			]
@@ -56,32 +48,27 @@ class ContentTemplate {
 
 		// Register each template to the schema
 		foreach ( $page_templates as $file => $name ) {
-			$template_type_name = Utils::format_type_name_for_wp_template( $name, $file );
+			$name          = ucwords( $name );
+			$replaced_name = preg_replace( '/[^\w]/', '', $name );
 
-			// If the type name is empty, log an error and continue.
-			if ( empty( $template_type_name ) ) {
-				graphql_debug(
-					sprintf(
-						// Translators: %s is the file name.
-						__( 'Unable to register the %1s template file as a GraphQL Type. Either the template name or the file name must only use ASCII characters. "DefaultTemplate" will be used instead.', 'wp-graphql' ),
-						(string) $file
-					)
-				);
-
-				continue;
+			if ( ! empty( $replaced_name ) ) {
+				$name = $replaced_name;
 			}
+
+			if ( preg_match( '/^\d/', $name ) || false === strpos( strtolower( $name ), 'template' ) ) {
+				$name = 'Template_' . $name;
+			}
+			$template_type_name = $name;
 
 			register_graphql_object_type(
 				$template_type_name,
 				[
 					'interfaces'      => [ 'ContentTemplate' ],
 					// Translators: Placeholder is the name of the GraphQL Type in the Schema
-					'description'     => static function () {
-						return __( 'The template assigned to the node', 'wp-graphql' );
-					},
+					'description'     => __( 'The template assigned to the node', 'wp-graphql' ),
 					'fields'          => [
 						'templateName' => [
-							'resolve' => static function ( $template ) {
+							'resolve' => function ( $template ) {
 								return isset( $template['templateName'] ) ? $template['templateName'] : null;
 							},
 						],

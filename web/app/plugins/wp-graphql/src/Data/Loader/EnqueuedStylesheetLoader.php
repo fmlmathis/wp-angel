@@ -9,11 +9,12 @@ namespace WPGraphQL\Data\Loader;
 class EnqueuedStylesheetLoader extends AbstractDataLoader {
 
 	/**
-	 * {@inheritDoc}
+	 * Given an array of enqueued stylesheet handles ($keys) load the associated
+	 * enqueued stylesheets from the $wp_styles registry.
 	 *
-	 * @param string[] $keys Array of stylesheet handles to load
+	 * @param array $keys
 	 *
-	 * @return array<string,mixed>
+	 * @return array
 	 */
 	public function loadKeys( array $keys ) {
 		global $wp_styles;

@@ -2,6 +2,7 @@
 namespace WPGraphQL\Mutation;
 
 use GraphQL\Error\UserError;
+use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 
 class ResetUserPassword {
@@ -25,27 +26,21 @@ class ResetUserPassword {
 	/**
 	 * Defines the mutation input field configuration.
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_input_fields() {
 		return [
 			'key'      => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'Password reset key', 'wp-graphql' );
-				},
+				'description' => __( 'Password reset key', 'wp-graphql' ),
 			],
 			'login'    => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The user\'s login (username).', 'wp-graphql' );
-				},
+				'description' => __( 'The user\'s login (username).', 'wp-graphql' ),
 			],
 			'password' => [
 				'type'        => 'String',
-				'description' => static function () {
-					return __( 'The new password.', 'wp-graphql' );
-				},
+				'description' => __( 'The new password.', 'wp-graphql' ),
 			],
 		];
 	}
@@ -53,7 +48,7 @@ class ResetUserPassword {
 	/**
 	 * Defines the mutation output field configuration.
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array
 	 */
 	public static function get_output_fields() {
 		return UserCreate::get_output_fields();
@@ -62,20 +57,21 @@ class ResetUserPassword {
 	/**
 	 * Defines the mutation data modification closure.
 	 *
-	 * @return callable(array<string,mixed>$input,\WPGraphQL\AppContext $context,\GraphQL\Type\Definition\ResolveInfo $info):array<string,mixed>
+	 * @return callable
 	 */
 	public static function mutate_and_get_payload() {
-		return static function ( $input, AppContext $context ) {
+		return function ( $input, AppContext $context, ResolveInfo $info ) {
+
 			if ( empty( $input['key'] ) ) {
-				throw new UserError( esc_html__( 'A password reset key is required.', 'wp-graphql' ) );
+				throw new UserError( __( 'A password reset key is required.', 'wp-graphql' ) );
 			}
 
 			if ( empty( $input['login'] ) ) {
-				throw new UserError( esc_html__( 'A user login is required.', 'wp-graphql' ) );
+				throw new UserError( __( 'A user login is required.', 'wp-graphql' ) );
 			}
 
 			if ( empty( $input['password'] ) ) {
-				throw new UserError( esc_html__( 'A new password is required.', 'wp-graphql' ) );
+				throw new UserError( __( 'A new password is required.', 'wp-graphql' ) );
 			}
 
 			$user = check_password_reset_key( $input['key'], $input['login'] );
@@ -97,7 +93,7 @@ class ResetUserPassword {
 				/**
 				 * Throw an error with the message
 				 */
-				throw new UserError( esc_html( $message ) );
+				throw new UserError( $message );
 			}
 
 			/**

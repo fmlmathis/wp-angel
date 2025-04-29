@@ -12,6 +12,7 @@ class TaxonomyEnum {
 	 * @return void
 	 */
 	public static function register_type() {
+		/** @var \WP_Taxonomy[] $allowed_taxonomies */
 		$allowed_taxonomies = \WPGraphQL::get_allowed_taxonomies( 'objects' );
 
 		$values = [];
@@ -25,13 +26,7 @@ class TaxonomyEnum {
 			if ( ! isset( $values[ WPEnumType::get_safe_name( $tax_object->graphql_single_name ) ] ) ) {
 				$values[ WPEnumType::get_safe_name( $tax_object->graphql_single_name ) ] = [
 					'value'       => $tax_object->name,
-					'description' => static function () use ( $tax_object ) {
-						return sprintf(
-							// translators: %s is the taxonomy name.
-							__( 'Taxonomy enum %s', 'wp-graphql' ),
-							$tax_object->name
-						);
-					},
+					'description' => sprintf( __( 'Taxonomy enum %s', 'wp-graphql' ), $tax_object->name ),
 				];
 			}
 		}
@@ -39,11 +34,10 @@ class TaxonomyEnum {
 		register_graphql_enum_type(
 			'TaxonomyEnum',
 			[
-				'description' => static function () {
-					return __( 'Available classification systems for organizing content. Identifies the different taxonomy types that can be used for content categorization.', 'wp-graphql' );
-				},
+				'description' => __( 'Allowed taxonomies', 'wp-graphql' ),
 				'values'      => $values,
 			]
 		);
+
 	}
 }

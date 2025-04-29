@@ -2,7 +2,6 @@
 namespace WPGraphQL\Type;
 
 use GraphQL\Type\Definition\EnumType;
-use WPGraphQL\Registry\TypeRegistry;
 
 /**
  * Class WPEnumType
@@ -16,7 +15,7 @@ class WPEnumType extends EnumType {
 	/**
 	 * WPEnumType constructor.
 	 *
-	 * @param array<string,mixed> $config
+	 * @param array $config
 	 */
 	public function __construct( $config ) {
 		$name             = ucfirst( $config['name'] );
@@ -26,23 +25,23 @@ class WPEnumType extends EnumType {
 	}
 
 	/**
-	 * Generate a safe / sanitized Enum value from a string.
+	 * Generate a safe / sanitized name from a menu location slug.
 	 *
 	 * @param  string $value Enum value.
 	 * @return string
 	 */
 	public static function get_safe_name( string $value ) {
-		$sanitized_enum_name = graphql_format_name( $value, '_' );
 
-		// If the sanitized name is empty, we want to return the original value so it displays in the error.
-		if ( ! empty( $sanitized_enum_name ) ) {
-			$value = $sanitized_enum_name;
+		$replaced = preg_replace( '#[^A-z0-9]#', '_', $value );
+
+		if ( ! empty( $replaced ) ) {
+			$value = $replaced;
 		}
 
 		$safe_name = strtoupper( $value );
 
 		// Enum names must start with a letter or underscore.
-		if ( ! preg_match( '#^[_a-zA-Z]#', $safe_name ) ) {
+		if ( ! preg_match( '#^[_a-zA-Z]#', $value ) ) {
 			return '_' . $safe_name;
 		}
 
@@ -53,33 +52,21 @@ class WPEnumType extends EnumType {
 	 * This function sorts the values and applies a filter to allow for easily
 	 * extending/modifying the shape of the Schema for the enum.
 	 *
-	 * @param array<string,mixed> $values
-	 * @param string              $type_name
-	 * @return array<string,mixed>
+	 * @param array  $values
+	 * @param string $type_name
+	 * @return mixed
 	 * @since 0.0.5
 	 */
 	private static function prepare_values( $values, $type_name ) {
-
-		// map over the values and if the description is a callable, call it
-		foreach ( $values as $key => $value ) {
-			if ( ! empty( $value['description'] ) && is_callable( $value['description'] ) ) {
-				$description = $value['description']();
-			} else {
-				$description = isset( $value['description'] ) && is_string( $value['description'] ) ? $value['description'] : '';
-			}
-			$values[ $key ]['description'] = $description ?? '';
-		}
-
 		/**
 		 * Filter all object fields, passing the $typename as a param
 		 *
 		 * This is useful when several different types need to be easily filtered at once. . .for example,
 		 * if ALL types with a field of a certain name needed to be adjusted, or something to that tune
 		 *
-		 * @param array<string,mixed> $values
-		 * @param string              $type_name
+		 * @param array $values
 		 */
-		$values = apply_filters( 'graphql_enum_values', $values, $type_name );
+		$values = apply_filters( 'graphql_enum_values', $values );
 
 		/**
 		 * Pass the values through a filter
@@ -89,24 +76,12 @@ class WPEnumType extends EnumType {
 		 * This is useful for more targeted filtering, and is applied after the general filter, to allow for
 		 * more specific overrides
 		 *
-		 * @param array<string,mixed> $values
-		 * @param string              $type_name
+		 * @param array $values
 		 *
 		 * @since 0.0.5
 		 */
-		$values = apply_filters( 'graphql_' . lcfirst( $type_name ) . '_values', $values, $type_name );
-		$values = apply_filters( 'graphql_' . $type_name . '_values', $values, $type_name );
-
-		// map over the values and if the description is a callable, call it
-		$values = array_map(
-			static function ( $value ) {
-				if ( ! is_array( $value ) ) {
-					$value = [ 'value' => $value ];
-				}
-				return TypeRegistry::prepare_config_for_introspection( $value );
-			},
-			$values
-		);
+		$values = apply_filters( 'graphql_' . lcfirst( $type_name ) . '_values', $values );
+		$values = apply_filters( 'graphql_' . $type_name . '_values', $values );
 
 		/**
 		 * Sort the values alphabetically by key. This makes reading through docs much easier
@@ -121,5 +96,7 @@ class WPEnumType extends EnumType {
 		 * @since 0.0.5
 		 */
 		return $values;
+
 	}
+
 }

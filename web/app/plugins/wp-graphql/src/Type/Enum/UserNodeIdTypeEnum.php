@@ -12,9 +12,7 @@ class UserNodeIdTypeEnum {
 		register_graphql_enum_type(
 			'UserNodeIdTypeEnum',
 			[
-				'description' => static function () {
-					return __( 'Identifier types for retrieving a specific user. Determines whether to look up users by ID, email, username, or other unique properties.', 'wp-graphql' );
-				},
+				'description' => __( 'The Type of Identifier used to fetch a single User node. To be used along with the "id" field. Default is "ID".', 'wp-graphql' ),
 				'values'      => self::get_values(),
 			]
 		);
@@ -23,51 +21,39 @@ class UserNodeIdTypeEnum {
 	/**
 	 * Returns the values for the Enum.
 	 *
-	 * @return array<string,array<string,(\Closure)|string>>
+	 * @return array
 	 */
 	public static function get_values() {
 		return [
 			'ID'          => [
 				'name'        => 'ID',
 				'value'       => 'global_id',
-				'description' => static function () {
-					return __( 'The hashed Global ID', 'wp-graphql' );
-				},
+				'description' => __( 'The hashed Global ID', 'wp-graphql' ),
 			],
 			'DATABASE_ID' => [
 				'name'        => 'DATABASE_ID',
 				'value'       => 'database_id',
-				'description' => static function () {
-					return __( 'The Database ID for the node', 'wp-graphql' );
-				},
+				'description' => __( 'The Database ID for the node', 'wp-graphql' ),
 			],
 			'URI'         => [
 				'name'        => 'URI',
 				'value'       => 'uri',
-				'description' => static function () {
-					return __( 'The URI for the node', 'wp-graphql' );
-				},
+				'description' => __( 'The URI for the node', 'wp-graphql' ),
 			],
 			'SLUG'        => [
 				'name'        => 'SLUG',
 				'value'       => 'slug',
-				'description' => static function () {
-					return __( 'The slug of the User', 'wp-graphql' );
-				},
+				'description' => __( 'The slug of the User', 'wp-graphql' ),
 			],
 			'EMAIL'       => [
 				'name'        => 'EMAIL',
 				'value'       => 'email',
-				'description' => static function () {
-					return __( 'The Email of the User', 'wp-graphql' );
-				},
+				'description' => __( 'The Email of the User', 'wp-graphql' ),
 			],
 			'USERNAME'    => [
 				'name'        => 'USERNAME',
 				'value'       => 'login',
-				'description' => static function () {
-					return __( 'The username the User uses to login with', 'wp-graphql' );
-				},
+				'description' => __( 'The username the User uses to login with', 'wp-graphql' ),
 			],
 		];
 	}

@@ -17,10 +17,10 @@ class Types {
 	/**
 	 * @deprecated since v0.6.0. Use Utils:map_input instead
 	 *
-	 * @param mixed[] $args The raw query args from the GraphQL query.
-	 * @param mixed[] $map  The mapping of where each of the args should go.
+	 * @param array $args The raw query args from the GraphQL query.
+	 * @param array $map  The mapping of where each of the args should go.
 	 *
-	 * @return array<string,mixed>
+	 * @return array
 	 */
 	public static function map_input( $args, $map ) {
 		_deprecated_function( __METHOD__, '0.6.0', 'WPGraphQL\Utils\Utils::map_input()' );
@@ -37,4 +37,5 @@ class Types {
 		_deprecated_function( __METHOD__, '0.6.0', 'WPGraphQL\Utils\Utils::prepare_date_response()' );
 		return Utils::prepare_date_response( $date_gmt, $date );
 	}
+
 }

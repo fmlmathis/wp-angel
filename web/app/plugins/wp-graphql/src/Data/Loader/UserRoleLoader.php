@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Data\Loader;
 
+use Exception;
 use WPGraphQL\Model\UserRole;
 
 /**
@@ -12,16 +13,21 @@ use WPGraphQL\Model\UserRole;
 class UserRoleLoader extends AbstractDataLoader {
 
 	/**
-	 * {@inheritDoc}
+	 * @param mixed $entry The User Role object
+	 * @param mixed $key The Key to identify the user role by
 	 *
-	 * @return \WPGraphQL\Model\UserRole
+	 * @return mixed|UserRole
+	 * @throws Exception
 	 */
 	protected function get_model( $entry, $key ) {
 		return new UserRole( $entry );
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array $keys
+	 *
+	 * @return array
+	 * @throws Exception
 	 */
 	public function loadKeys( array $keys ) {
 		$wp_roles = wp_roles()->roles;

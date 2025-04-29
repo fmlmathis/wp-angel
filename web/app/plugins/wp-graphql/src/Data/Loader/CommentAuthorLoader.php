@@ -1,6 +1,7 @@
 <?php
 namespace WPGraphQL\Data\Loader;
 
+use Exception;
 use WPGraphQL\Model\CommentAuthor;
 
 /**
@@ -11,11 +12,14 @@ use WPGraphQL\Model\CommentAuthor;
 class CommentAuthorLoader extends AbstractDataLoader {
 
 	/**
-	 * {@inheritDoc}
+	 * @param mixed $entry The User Role object
+	 * @param mixed $key The Key to identify the user role by
 	 *
-	 * @return ?\WPGraphQL\Model\CommentAuthor
+	 * @return mixed|CommentAuthor
+	 * @throws Exception
 	 */
 	protected function get_model( $entry, $key ) {
+
 		if ( ! $entry instanceof \WP_Comment ) {
 			return null;
 		}
@@ -24,9 +28,9 @@ class CommentAuthorLoader extends AbstractDataLoader {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * @param array $keys
 	 *
-	 * @param int[] $keys Array of IDs to load
+	 * @return array
 	 */
 	public function loadKeys( array $keys ) {
 		/**
@@ -53,4 +57,5 @@ class CommentAuthorLoader extends AbstractDataLoader {
 		}
 		return $loaded;
 	}
+
 }

@@ -3,6 +3,7 @@
 namespace WPGraphQL\Data\Loader;
 
 use Exception;
+use Generator;
 use GraphQL\Deferred;
 use GraphQL\Utils\Utils;
 use WPGraphQL\AppContext;
@@ -28,28 +29,28 @@ abstract class AbstractDataLoader {
 	/**
 	 * This stores an array of items that have already been loaded
 	 *
-	 * @var array<int|string,mixed>
+	 * @var array
 	 */
 	private $cached = [];
 
 	/**
 	 * This stores an array of IDs that need to be loaded
 	 *
-	 * @var array<int|string,int|string>
+	 * @var array
 	 */
 	private $buffer = [];
 
 	/**
 	 * This stores a reference to the AppContext for the loader to make use of
 	 *
-	 * @var \WPGraphQL\AppContext
+	 * @var AppContext
 	 */
 	protected $context;
 
 	/**
 	 * AbstractDataLoader constructor.
 	 *
-	 * @param \WPGraphQL\AppContext $context
+	 * @param AppContext $context
 	 */
 	public function __construct( AppContext $context ) {
 		$this->context = $context;
@@ -58,12 +59,14 @@ abstract class AbstractDataLoader {
 	/**
 	 * Given a Database ID, the particular loader will buffer it and resolve it deferred.
 	 *
-	 * @param mixed|int|string $database_id The database ID for a particular loader to load an object
+	 * @param mixed|int|string $database_id The database ID for a particular loader to load an
+	 *                                      object
 	 *
-	 * @return \GraphQL\Deferred|null
-	 * @throws \Exception
+	 * @return Deferred|null
+	 * @throws Exception
 	 */
 	public function load_deferred( $database_id ) {
+
 		if ( empty( $database_id ) ) {
 			return null;
 		}
@@ -77,26 +80,25 @@ abstract class AbstractDataLoader {
 				return $this->load( $database_id );
 			}
 		);
+
 	}
 
 	/**
 	 * Add keys to buffer to be loaded in single batch later.
 	 *
-	 * @param int[]|string[] $keys The keys of the objects to buffer
+	 * @param array $keys The keys of the objects to buffer
 	 *
 	 * @return $this
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function buffer( array $keys ) {
 		foreach ( $keys as $index => $key ) {
 			$key = $this->key_to_scalar( $key );
 			if ( ! is_scalar( $key ) ) {
 				throw new Exception(
-					static::class . '::buffer expects all keys to be scalars, but key ' .
-					'at position ' . esc_html( $index ) . ' is ' . esc_html(
-						Utils::printSafe( $keys ) . '. ' .
-						$this->get_scalar_key_hint( $key )
-					)
+					get_class( $this ) . '::buffer expects all keys to be scalars, but key ' .
+					'at position ' . $index . ' is ' . Utils::printSafe( $keys ) . '. ' .
+					$this->get_scalar_key_hint( $key )
 				);
 			}
 			$this->buffer[ $key ] = 1;
@@ -109,19 +111,18 @@ abstract class AbstractDataLoader {
 	 * Loads a key and returns value represented by this key.
 	 * Internally this method will load all currently buffered items and cache them locally.
 	 *
-	 * @param int|string|mixed $key
+	 * @param mixed $key
 	 *
-	 * @return ?\WPGraphQL\Model\Model
-	 * @throws \Exception
+	 * @return mixed
+	 * @throws Exception
 	 */
 	public function load( $key ) {
+
 		$key = $this->key_to_scalar( $key );
 		if ( ! is_scalar( $key ) ) {
 			throw new Exception(
-				static::class . '::load expects key to be scalar, but got ' . esc_html(
-					Utils::printSafe( $key ) .
-					$this->get_scalar_key_hint( $key )
-				)
+				get_class( $this ) . '::load expects key to be scalar, but got ' . Utils::printSafe( $key ) .
+				$this->get_scalar_key_hint( $key )
 			);
 		}
 		if ( ! $this->shouldCache ) {
@@ -142,21 +143,19 @@ abstract class AbstractDataLoader {
 	 * @param mixed $value
 	 *
 	 * @return $this
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function prime( $key, $value ) {
 		$key = $this->key_to_scalar( $key );
 		if ( ! is_scalar( $key ) ) {
 			throw new Exception(
-				static::class . '::prime is expecting scalar $key, but got ' . esc_html(
-					Utils::printSafe( $key )
-					. $this->get_scalar_key_hint( $key )
-				)
+				get_class( $this ) . '::prime is expecting scalar $key, but got ' . Utils::printSafe( $key )
+				. $this->get_scalar_key_hint( $key )
 			);
 		}
 		if ( null === $value ) {
 			throw new Exception(
-				static::class . '::prime is expecting non-null $value, but got null. Double-check for null or ' .
+				get_class( $this ) . '::prime is expecting non-null $value, but got null. Double-check for null or ' .
 				' use `clear` if you want to clear the cache'
 			);
 		}
@@ -180,7 +179,7 @@ abstract class AbstractDataLoader {
 	 * Clears the value at `key` from the cache, if it exists. Returns itself for
 	 * method chaining.
 	 *
-	 * @param int[]|string[] $keys
+	 * @param array $keys
 	 *
 	 * @return $this
 	 */
@@ -200,11 +199,11 @@ abstract class AbstractDataLoader {
 	 * invalidations across this particular `DataLoader`. Returns itself for
 	 * method chaining.
 	 *
-	 * @return \WPGraphQL\Data\Loader\AbstractDataLoader
+	 * @return AbstractDataLoader
 	 * @deprecated in favor of clear_all
 	 */
 	public function clearAll() {
-		_deprecated_function( __METHOD__, '0.8.4', static::class . '::clear_all()' );
+		_deprecated_function( __METHOD__, '0.8.4', static::class . '::clear_all()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		return $this->clear_all();
 	}
 
@@ -213,7 +212,7 @@ abstract class AbstractDataLoader {
 	 * invalidations across this particular `DataLoader`. Returns itself for
 	 * method chaining.
 	 *
-	 * @return \WPGraphQL\Data\Loader\AbstractDataLoader
+	 * @return AbstractDataLoader
 	 */
 	public function clear_all() {
 		$this->cached = [];
@@ -225,16 +224,16 @@ abstract class AbstractDataLoader {
 	 * Loads multiple keys. Returns generator where each entry directly corresponds to entry in
 	 * $keys. If second argument $asArray is set to true, returns array instead of generator
 	 *
-	 * @param int[]|string[] $keys
-	 * @param bool           $asArray
+	 * @param array $keys
+	 * @param bool  $asArray
 	 *
-	 * @return \Generator|array<int|string,mixed>
-	 * @throws \Exception
+	 * @return array|Generator
+	 * @throws Exception
 	 *
 	 * @deprecated Use load_many instead
 	 */
 	public function loadMany( array $keys, $asArray = false ) {
-		_deprecated_function( __METHOD__, '0.8.4', static::class . '::load_many()' );
+		_deprecated_function( __METHOD__, '0.8.4', static::class . '::load_many()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		return $this->load_many( $keys, $asArray );
 	}
 
@@ -242,11 +241,11 @@ abstract class AbstractDataLoader {
 	 * Loads multiple keys. Returns generator where each entry directly corresponds to entry in
 	 * $keys. If second argument $asArray is set to true, returns array instead of generator
 	 *
-	 * @param int[]|string[] $keys
-	 * @param bool           $asArray
+	 * @param array $keys
+	 * @param bool  $asArray
 	 *
-	 * @return \Generator|array<int|string,mixed>
-	 * @throws \Exception
+	 * @return array|Generator
+	 * @throws Exception
 	 */
 	public function load_many( array $keys, $asArray = false ) {
 		if ( empty( $keys ) ) {
@@ -264,15 +263,15 @@ abstract class AbstractDataLoader {
 	/**
 	 * Given an array of keys, this yields the object from the cached results
 	 *
-	 * @param int[]|string[]          $keys   The keys to generate results for
-	 * @param array<int|string,mixed> $result The results for all keys
+	 * @param array $keys   The keys to generate results for
+	 * @param array $result The results for all keys
 	 *
-	 * @return \Generator
+	 * @return Generator
 	 */
 	private function generate_many( array $keys, array $result ) {
 		foreach ( $keys as $key ) {
 			$key = $this->key_to_scalar( $key );
-			yield isset( $result[ $key ] ) ? $this->normalize_entry( $result[ $key ], $key ) : null;
+			yield isset( $result[ $key ] ) ? $this->get_model( $result[ $key ], $key ) : null;
 		}
 	}
 
@@ -281,10 +280,10 @@ abstract class AbstractDataLoader {
 	 * executes the loaders `loadKeys` method to load the items and adds them
 	 * to the cache if necessary
 	 *
-	 * @return array<int|string,mixed>
-	 * @throws \Exception
+	 * @return array
+	 * @throws Exception
 	 */
-	private function load_buffered(): array {
+	private function load_buffered() {
 		// Do not load previously-cached entries:
 		$keysToLoad = [];
 		foreach ( $this->buffer as $key => $unused ) {
@@ -297,19 +296,19 @@ abstract class AbstractDataLoader {
 		if ( ! empty( $keysToLoad ) ) {
 			try {
 				$loaded = $this->loadKeys( $keysToLoad );
-			} catch ( \Throwable $e ) {
+			} catch ( Exception $e ) {
 				throw new Exception(
-					'Method ' . static::class . '::loadKeys is expected to return array, but it threw: ' .
-					esc_html( $e->getMessage() ),
+					'Method ' . get_class( $this ) . '::loadKeys is expected to return array, but it threw: ' .
+					$e->getMessage(),
 					0,
-					$e // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+					$e
 				);
 			}
 
 			if ( ! is_array( $loaded ) ) {
 				throw new Exception(
-					'Method ' . static::class . '::loadKeys is expected to return an array with keys ' .
-					'but got: ' . esc_html( Utils::printSafe( $loaded ) )
+					'Method ' . get_class( $this ) . '::loadKeys is expected to return an array with keys ' .
+					'but got: ' . Utils::printSafe( $loaded )
 				);
 			}
 			if ( $this->shouldCache ) {
@@ -331,12 +330,14 @@ abstract class AbstractDataLoader {
 	 * This helps to ensure null values aren't being loaded by accident.
 	 *
 	 * @param mixed $key
+	 *
+	 * @return string
 	 */
-	private function get_scalar_key_hint( $key ): string {
+	private function get_scalar_key_hint( $key ) {
 		if ( null === $key ) {
 			return ' Make sure to add additional checks for null values.';
 		} else {
-			return ' Try overriding ' . self::class . '::key_to_scalar if your keys are composite.';
+			return ' Try overriding ' . __CLASS__ . '::key_to_scalar if your keys are composite.';
 		}
 	}
 
@@ -346,22 +347,22 @@ abstract class AbstractDataLoader {
 	 * to the loader, we could have the loader centrally decode the keys into their
 	 * integer values in the PostObjectLoader by overriding this method.
 	 *
-	 * @param int|string|mixed $key
+	 * @param mixed $key
 	 *
-	 * @return int|string
+	 * @return mixed
 	 */
 	protected function key_to_scalar( $key ) {
 		return $key;
 	}
 
 	/**
-	 * @param int|string|mixed $key
+	 * @param mixed $key
 	 *
-	 * @return int|string
+	 * @return mixed
 	 * @deprecated Use key_to_scalar instead
 	 */
 	protected function keyToScalar( $key ) {
-		_deprecated_function( __METHOD__, '0.8.4', static::class . '::key_to_scalar()' );
+		_deprecated_function( __METHOD__, '0.8.4', static::class . '::key_to_scalar()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		return $this->key_to_scalar( $key );
 	}
 
@@ -369,7 +370,7 @@ abstract class AbstractDataLoader {
 	 * @param mixed $entry The entry loaded from the dataloader to be used to generate a Model
 	 * @param mixed $key   The Key used to identify the loaded entry
 	 *
-	 * @return \WPGraphQL\Model\Model|null
+	 * @return null|Model
 	 */
 	protected function normalize_entry( $entry, $key ) {
 
@@ -384,7 +385,7 @@ abstract class AbstractDataLoader {
 		 * @param null               $model                The filtered model to return. Default null
 		 * @param mixed              $entry                The entry loaded from the dataloader to be used to generate a Model
 		 * @param mixed              $key                  The Key used to identify the loaded entry
-		 * @param \WPGraphQL\Data\Loader\AbstractDataLoader $abstract_data_loader The AbstractDataLoader instance
+		 * @param AbstractDataLoader $abstract_data_loader The AbstractDataLoader instance
 		 */
 		$model         = null;
 		$pre_get_model = apply_filters( 'graphql_dataloader_pre_get_model', $model, $entry, $key, $this );
@@ -408,7 +409,7 @@ abstract class AbstractDataLoader {
 		 * @param mixed              $model  The Model to be returned by the loader
 		 * @param mixed              $entry  The entry loaded by dataloader that was used to create the Model
 		 * @param mixed              $key    The Key that was used to load the entry
-		 * @param \WPGraphQL\Data\Loader\AbstractDataLoader $loader The AbstractDataLoader Instance
+		 * @param AbstractDataLoader $loader The AbstractDataLoader Instance
 		 */
 		return apply_filters( 'graphql_dataloader_get_model', $model, $entry, $key, $this );
 	}
@@ -416,7 +417,7 @@ abstract class AbstractDataLoader {
 	/**
 	 * Returns a cached data object by key.
 	 *
-	 * @param int|string $key Key.
+	 * @param mixed $key  Key.
 	 *
 	 * @return mixed
 	 */
@@ -429,16 +430,16 @@ abstract class AbstractDataLoader {
 		/**
 		 * Use this filter to retrieving cached data objects from third-party caching system.
 		 *
-		 * @param mixed       $value        Value to be cached.
-		 * @param int|string  $key          Key identifying object.
-		 * @param string      $loader_class Loader class name.
-		 * @param mixed       $loader       Loader instance.
+		 * @param mixed  $value         Value to be cached.
+		 * @param mixed  $key           Key identifying object.
+		 * @param string $loader_class  Loader class name.
+		 * @param mixed  $loader        Loader instance.
 		 */
 		$value = apply_filters(
 			'graphql_dataloader_get_cached',
 			$value,
 			$key,
-			static::class,
+			get_class( $this ),
 			$this
 		);
 
@@ -452,10 +453,10 @@ abstract class AbstractDataLoader {
 	/**
 	 * Caches a data object by key.
 	 *
-	 * @param int|string $key    Key.
-	 * @param mixed      $value  Data object.
+	 * @param mixed $key    Key.
+	 * @param mixed $value  Data object.
 	 *
-	 * @return void
+	 * @return mixed
 	 */
 	protected function set_cached( $key, $value ) {
 		/**
@@ -470,7 +471,7 @@ abstract class AbstractDataLoader {
 			'graphql_dataloader_set_cached',
 			$value,
 			$key,
-			static::class,
+			get_class( $this ),
 			$this
 		);
 	}
@@ -479,10 +480,10 @@ abstract class AbstractDataLoader {
 	 * If the loader needs to do any tweaks between getting raw data from the DB and caching,
 	 * this can be overridden by the specific loader and used for transformations, etc.
 	 *
-	 * @param mixed $entry The entry data to be used to generate a Model.
-	 * @param mixed $key   The Key to identify the entry by.
+	 * @param mixed $entry The User Role object
+	 * @param mixed $key   The Key to identify the user role by
 	 *
-	 * @return ?\WPGraphQL\Model\Model
+	 * @return Model
 	 */
 	protected function get_model( $entry, $key ) {
 		return $entry;
@@ -498,9 +499,9 @@ abstract class AbstractDataLoader {
 	 * For example:
 	 * loadKeys(['a', 'b', 'c']) -> ['a' => 'value1, 'b' => null, 'c' => 'value3']
 	 *
-	 * @param int[]|string[] $keys
+	 * @param array $keys
 	 *
-	 * @return array<int|string,mixed>
+	 * @return array
 	 */
-	abstract protected function loadKeys( array $keys ); // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- @todo deprecate for `::load_keys()`
+	abstract protected function loadKeys( array $keys );
 }

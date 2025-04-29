@@ -15,7 +15,11 @@ class ContentTypeEnum {
 	public static function register_type() {
 		$values = [];
 
-		// Get the allowed post types.
+		/**
+		 * Get the allowed post types
+		 *
+		 * @var string[] $allowed_post_types
+		 */
 		$allowed_post_types = \WPGraphQL::get_allowed_post_types();
 
 		/**
@@ -25,24 +29,22 @@ class ContentTypeEnum {
 		foreach ( $allowed_post_types as $allowed_post_type ) {
 			$values[ WPEnumType::get_safe_name( $allowed_post_type ) ] = [
 				'value'       => $allowed_post_type,
-				'description' => static function () {
-					return __( 'The Type of Content object', 'wp-graphql' );
-				},
+				'description' => __( 'The Type of Content object', 'wp-graphql' ),
 			];
 		}
 
 		register_graphql_enum_type(
 			'ContentTypeEnum',
 			[
-				'description' => static function () {
-					return __( 'Available content entity types that can be queried or filtered. Identifies the primary content structures available in the system.', 'wp-graphql' );
-				},
+				'description' => __( 'Allowed Content Types', 'wp-graphql' ),
 				'values'      => $values,
 			]
 		);
 
 		/**
-		 * Register a ContentTypesOf${taxonomyName}Enum for each taxonomy.
+		 * Register a ContentTypesOf${taxonomyName}Enum for each taxonomy
+		 *
+		 * @var \WP_Taxonomy[] $allowed_taxonomies
 		 */
 		$allowed_taxonomies = \WPGraphQL::get_allowed_taxonomies( 'objects' );
 		foreach ( $allowed_taxonomies as $tax_object ) {
@@ -60,27 +62,21 @@ class ContentTypeEnum {
 				$taxonomy_values[ WPEnumType::get_safe_name( $tax_object_type ) ] = [
 					'name'        => WPEnumType::get_safe_name( $tax_object_type ),
 					'value'       => $tax_object_type,
-					'description' => static function () {
-						return __( 'The Type of Content object', 'wp-graphql' );
-					},
+					'description' => __( 'The Type of Content object', 'wp-graphql' ),
 				];
 			}
 
 			if ( ! empty( $taxonomy_values ) ) {
+
 				register_graphql_enum_type(
 					'ContentTypesOf' . Utils::format_type_name( $tax_object->graphql_single_name ) . 'Enum',
 					[
-						'description' => static function () use ( $tax_object ) {
-							return sprintf(
-								// translators: %s is the taxonomy's GraphQL name.
-								__( 'Allowed Content Types of the %s taxonomy.', 'wp-graphql' ),
-								Utils::format_type_name( $tax_object->graphql_single_name )
-							);
-						},
+						'description' => sprintf( __( 'Allowed Content Types of the %s taxonomy.', 'wp-graphql' ), Utils::format_type_name( $tax_object->graphql_single_name ) ),
 						'values'      => $taxonomy_values,
 					]
 				);
 			}
 		}
+
 	}
 }

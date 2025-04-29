@@ -2,8 +2,6 @@
 
 namespace WPGraphQL\Type\Enum;
 
-use WPGraphQL\Utils\Utils;
-
 class TermNodeIdTypeEnum {
 
 	/**
@@ -12,12 +10,11 @@ class TermNodeIdTypeEnum {
 	 * @return void
 	 */
 	public static function register_type() {
+
 		register_graphql_enum_type(
 			'TermNodeIdTypeEnum',
 			[
-				'description' => static function () {
-					return __( 'The Type of Identifier used to fetch a single resource. Default is "ID". To be used along with the "id" field.', 'wp-graphql' );
-				},
+				'description' => __( 'The Type of Identifier used to fetch a single resource. Default is "ID". To be used along with the "id" field.', 'wp-graphql' ),
 				'values'      => self::get_values(),
 			]
 		);
@@ -34,10 +31,7 @@ class TermNodeIdTypeEnum {
 			register_graphql_enum_type(
 				$tax_object->graphql_single_name . 'IdType',
 				[
-					'description' => static function () use ( $tax_object ) {
-						// translators: %1$s is the taxonomy name, %2$s is the taxonomy name
-						return sprintf( __( 'Identifier types for retrieving a specific %1$s. Determines which unique property (global ID, database ID, slug, etc.) is used to locate the %2$s.', 'wp-graphql' ), Utils::format_type_name( $tax_object->graphql_single_name ), Utils::format_type_name( $tax_object->graphql_single_name ) );
-					},
+					'description' => __( 'The Type of Identifier used to fetch a single resource. Default is ID.', 'wp-graphql' ),
 					'values'      => self::get_values(),
 				]
 			);
@@ -47,44 +41,34 @@ class TermNodeIdTypeEnum {
 	/**
 	 * Get the values for the Enum definitions
 	 *
-	 * @return array<string,array<string,(\Closure)|string>>
+	 * @return array
 	 */
 	public static function get_values() {
 		return [
 			'SLUG'        => [
 				'name'        => 'SLUG',
 				'value'       => 'slug',
-				'description' => static function () {
-					return __( 'Url friendly name of the node', 'wp-graphql' );
-				},
+				'description' => __( 'Url friendly name of the node', 'wp-graphql' ),
 			],
 			'NAME'        => [
 				'name'        => 'NAME',
 				'value'       => 'name',
-				'description' => static function () {
-					return __( 'The name of the node', 'wp-graphql' );
-				},
+				'description' => __( 'The name of the node', 'wp-graphql' ),
 			],
 			'ID'          => [
 				'name'        => 'ID',
 				'value'       => 'global_id',
-				'description' => static function () {
-					return __( 'The hashed Global ID', 'wp-graphql' );
-				},
+				'description' => __( 'The hashed Global ID', 'wp-graphql' ),
 			],
 			'DATABASE_ID' => [
 				'name'        => 'DATABASE_ID',
 				'value'       => 'database_id',
-				'description' => static function () {
-					return __( 'The Database ID for the node', 'wp-graphql' );
-				},
+				'description' => __( 'The Database ID for the node', 'wp-graphql' ),
 			],
 			'URI'         => [
 				'name'        => 'URI',
 				'value'       => 'uri',
-				'description' => static function () {
-					return __( 'The URI for the node', 'wp-graphql' );
-				},
+				'description' => __( 'The URI for the node', 'wp-graphql' ),
 			],
 		];
 	}

@@ -15,26 +15,19 @@ class MediaItemStatusEnum {
 		$values = [];
 
 		$post_stati = [
-			'inherit'    => static function () {
-				return __( 'Media that inherits its publication status from the parent content', 'wp-graphql' );
-			},
-			'private'    => static function () {
-				return __( 'Media visible only to users with appropriate permissions', 'wp-graphql' );
-			},
-			'trash'      => static function () {
-				return __( 'Media marked for deletion but still recoverable', 'wp-graphql' );
-			},
-			'auto-draft' => static function () {
-				return __( 'Automatically created media that has not been finalized', 'wp-graphql' );
-			},
+			'inherit',
+			'private',
+			'trash',
+			'auto-draft',
 		];
 
 		/**
 		 * Loop through the post_stati
 		 */
-		foreach ( $post_stati as $status => $description ) {
+		foreach ( $post_stati as $status ) {
+
 			$values[ WPEnumType::get_safe_name( $status ) ] = [
-				'description' => $description,
+				'description' => sprintf( __( 'Objects with the %1$s status', 'wp-graphql' ), $status ),
 				'value'       => $status,
 			];
 		}
@@ -42,11 +35,10 @@ class MediaItemStatusEnum {
 		register_graphql_enum_type(
 			'MediaItemStatusEnum',
 			[
-				'description' => static function () {
-					return __( 'Publication status for media items. Controls whether media is publicly accessible, private, or in another state.', 'wp-graphql' );
-				},
+				'description' => __( 'The status of the media item object.', 'wp-graphql' ),
 				'values'      => $values,
 			]
 		);
+
 	}
 }

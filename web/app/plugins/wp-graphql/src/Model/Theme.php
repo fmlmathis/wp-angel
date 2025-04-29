@@ -7,16 +7,16 @@ use GraphQLRelay\Relay;
 /**
  * Class Theme - Models data for themes
  *
- * @property ?string       $author
- * @property ?string       $authorUri
- * @property ?string       $description
- * @property ?string       $id
- * @property ?string       $name
- * @property ?string       $screenshot
- * @property ?string       $slug
- * @property ?string       $themeUri
- * @property string[]|null $tags
- * @property ?string       $version
+ * @property string     $id
+ * @property string     $slug
+ * @property string     $name
+ * @property string     $screenshot
+ * @property string     $themeUri
+ * @property string     $description
+ * @property string     $author
+ * @property string     $authorUri
+ * @property array      $tags
+ * @property string|int $version
  *
  * @package WPGraphQL\Model
  */
@@ -43,7 +43,9 @@ class Theme extends Model {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Method for determining if the data should be considered private or not
+	 *
+	 * @return bool
 	 */
 	protected function is_private() {
 		// Don't assume a capabilities hierarchy, since it's likely headless sites might disable some capabilities site-wide.
@@ -56,26 +58,26 @@ class Theme extends Model {
 		}
 
 		return false;
+
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Initialize the object
+	 *
+	 * @return void
 	 */
 	protected function init() {
+
 		if ( empty( $this->fields ) ) {
+
 			$this->fields = [
-				'author'      => function () {
-					return ! empty( $this->data->author ) ? $this->data->author : null;
-				},
-				'authorUri'   => function () {
-					$author_uri = $this->data->get( 'AuthorURI' );
-					return ! empty( $author_uri ) ? $author_uri : null;
-				},
-				'description' => function () {
-					return ! empty( $this->data->description ) ? $this->data->description : null;
-				},
 				'id'          => function () {
-					return ! empty( $this->slug ) ? Relay::toGlobalId( 'theme', $this->slug ) : null;
+					$stylesheet = $this->data->get_stylesheet();
+					return ( ! empty( $stylesheet ) ) ? Relay::toGlobalId( 'theme', $stylesheet ) : null;
+				},
+				'slug'        => function () {
+					$stylesheet = $this->data->get_stylesheet();
+					return ! empty( $stylesheet ) ? $stylesheet : null;
 				},
 				'name'        => function () {
 					$name = $this->data->get( 'Name' );
@@ -85,21 +87,28 @@ class Theme extends Model {
 					$screenshot = $this->data->get_screenshot();
 					return ! empty( $screenshot ) ? $screenshot : null;
 				},
-				'slug'        => function () {
-					$stylesheet = $this->data->get_stylesheet();
-					return ! empty( $stylesheet ) ? $stylesheet : null;
-				},
 				'themeUri'    => function () {
 					$theme_uri = $this->data->get( 'ThemeURI' );
 					return ! empty( $theme_uri ) ? $theme_uri : null;
+				},
+				'description' => function () {
+					return ! empty( $this->data->description ) ? $this->data->description : null;
+				},
+				'author'      => function () {
+					return ! empty( $this->data->author ) ? $this->data->author : null;
+				},
+				'authorUri'   => function () {
+					$author_uri = $this->data->get( 'AuthorURI' );
+					return ! empty( $author_uri ) ? $author_uri : null;
 				},
 				'tags'        => function () {
 					return ! empty( $this->data->tags ) ? $this->data->tags : null;
 				},
 				'version'     => function () {
-					return ! empty( $this->data->version ) ? (string) $this->data->version : null;
+					return ! empty( $this->data->version ) ? $this->data->version : null;
 				},
 			];
+
 		}
 	}
 }

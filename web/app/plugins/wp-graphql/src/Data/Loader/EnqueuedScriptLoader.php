@@ -9,11 +9,12 @@ namespace WPGraphQL\Data\Loader;
 class EnqueuedScriptLoader extends AbstractDataLoader {
 
 	/**
-	 * {@inheritDoc}
+	 * Given an array of enqueued script handles ($keys) load the associated
+	 * enqueued scripts from the $wp_scripts registry.
 	 *
-	 * @param string[] $keys Array of script handles to load
+	 * @param array $keys
 	 *
-	 * @return array<string,mixed>
+	 * @return array
 	 */
 	public function loadKeys( array $keys ) {
 		/** @var \WP_Scripts $wp_scripts */
