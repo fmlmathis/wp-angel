@@ -3,7 +3,7 @@
         'name' => 'wp-engine/advanced-custom-fields',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '013d6a08aa3dcc5c0ed6551861ecb655b8682afe',
+        'reference' => '1eb881e14063045c063076b8eb6fcc27ce212211',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'wp-engine/advanced-custom-fields' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '013d6a08aa3dcc5c0ed6551861ecb655b8682afe',
+            'reference' => '1eb881e14063045c063076b8eb6fcc27ce212211',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
