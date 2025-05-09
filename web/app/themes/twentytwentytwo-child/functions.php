@@ -25,20 +25,31 @@ add_action('acf/init', function () {
 });
 
 /**
- * Désactiver l'éditeur Gutenberg pour certains Custom Post Types
+ * Désactiver Gutenberg pour certaines pages et CPT
  */
 function disable_gutenberg_for_cpt($can_edit, $post) {
     if (!is_admin() || !$post) {
         return $can_edit;
     }
 
-    // Liste des slugs de CPT pour lesquels désactiver Gutenberg
-    $disabled_cpts = ['business-plan', 'creer-son-entreprise', 'piloter-son-entreprise']; // Remplacer avec vos slugs de CPT
+    $post_type = get_post_type($post);
+    $disabled_post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
 
-    if (in_array(get_post_type($post), $disabled_cpts)) {
+    if (in_array($post_type, $disabled_post_types)) {
         return false;
     }
 
     return $can_edit;
 }
 add_filter('use_block_editor_for_post', 'disable_gutenberg_for_cpt', 10, 2);
+
+/**
+ * Supprimer complètement l’éditeur (classique et Gutenberg)
+ */
+add_action('init', function () {
+    $disabled_post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
+
+    foreach ($disabled_post_types as $post_type) {
+        remove_post_type_support($post_type, 'editor');
+    }
+});
