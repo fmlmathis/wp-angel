@@ -53,3 +53,20 @@ add_action('init', function () {
         remove_post_type_support($post_type, 'editor');
     }
 });
+
+add_action('admin_menu', function () {
+  $post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
+
+  foreach ($post_types as $type) {
+      remove_meta_box('commentstatusdiv', $type, 'normal'); // Onglet Discussion
+      remove_meta_box('commentsdiv', $type, 'normal');      // Onglet Commentaires
+  }
+});
+
+add_filter('comments_open', function ($open, $post_id) {
+  $post = get_post($post_id);
+  if (in_array($post->post_type, ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'])) {
+      return false;
+  }
+  return $open;
+}, 10, 2);
