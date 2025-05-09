@@ -1,4 +1,8 @@
 <?php
+// Définition des types de posts personnalisés
+global $angel_post_types;
+$angel_post_types = ['page', 'business-plan', 'lancement', 'pilotage'];
+
 // Charger les styles du parent
 add_action('wp_enqueue_scripts', function () {
   wp_enqueue_style(
@@ -28,14 +32,15 @@ add_action('acf/init', function () {
  * Désactiver Gutenberg pour certaines pages et CPT
  */
 function disable_gutenberg_for_cpt($can_edit, $post) {
+    global $angel_post_types;
+    
     if (!is_admin() || !$post) {
         return $can_edit;
     }
 
     $post_type = get_post_type($post);
-    $disabled_post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
-
-    if (in_array($post_type, $disabled_post_types)) {
+    
+    if (in_array($post_type, $angel_post_types)) {
         return false;
     }
 
@@ -47,26 +52,28 @@ add_filter('use_block_editor_for_post', 'disable_gutenberg_for_cpt', 10, 2);
  * Supprimer complètement l’éditeur (classique et Gutenberg)
  */
 add_action('init', function () {
-    $disabled_post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
-
-    foreach ($disabled_post_types as $post_type) {
+    global $angel_post_types;
+    
+    foreach ($angel_post_types as $post_type) {
         remove_post_type_support($post_type, 'editor');
     }
 });
 
 add_action('admin_menu', function () {
-  $post_types = ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'];
-
-  foreach ($post_types as $type) {
-      remove_meta_box('commentstatusdiv', $type, 'normal'); // Onglet Discussion
-      remove_meta_box('commentsdiv', $type, 'normal');      // Onglet Commentaires
-  }
+    global $angel_post_types;
+  
+    foreach ($angel_post_types as $type) {
+        remove_meta_box('commentstatusdiv', $type, 'normal'); // Onglet Discussion
+        remove_meta_box('commentsdiv', $type, 'normal');      // Onglet Commentaires
+    }
 });
 
 add_filter('comments_open', function ($open, $post_id) {
-  $post = get_post($post_id);
-  if (in_array($post->post_type, ['page', 'business-plan', 'creer-son-entreprise', 'piloter-son-entreprise'])) {
-      return false;
-  }
-  return $open;
+    global $angel_post_types;
+    
+    $post = get_post($post_id);
+    if (in_array($post->post_type, $angel_post_types)) {
+        return false;
+    }
+    return $open;
 }, 10, 2);
