@@ -41,7 +41,11 @@
     "valu/wp-graphql-polylang": "^0.7.0",
     "vlucas/phpdotenv": "^5.6.0",
     "wp-cli/wp-cli-bundle": "2.11.*",
+    "wpackagist-plugin/add-wpgraphql-seo": "^4.23",
+    "wpackagist-plugin/clonepress": "^1.0",
+    "wpackagist-plugin/integromat-connector": "^1.5",
     "wpackagist-plugin/mailgun": "2.1.6",
+    "wpackagist-plugin/wordpress-seo": "^25.1",
     "wpackagist-plugin/wp-graphql": "^1.14.4",
     "wpackagist-plugin/wpgraphql-acf": "^2.4",
     "wpackagist-theme/twentytwentytwo": "^1.2"
