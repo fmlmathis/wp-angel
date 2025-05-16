@@ -1,0 +1,6 @@
+*** Yoast SEO premium Changelog ***
+
+
+2025-05-13 - version 25.1
+* update -  Bumps the minimum required version of Yoast SEO to 25.1.
+
