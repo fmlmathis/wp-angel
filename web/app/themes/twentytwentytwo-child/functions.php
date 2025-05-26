@@ -77,3 +77,18 @@ add_filter('comments_open', function ($open, $post_id) {
     }
     return $open;
 }, 10, 2);
+
+add_action('after_setup_theme', function () {
+  register_nav_menus([
+    'main_menu' => __('Menu principal', 'twentytwentytwo-child'),
+  ]);
+});
+
+wp_nav_menu([
+  'theme_location' => 'main_menu',
+  'menu_class' => 'main-menu',
+  'container' => false,
+]);
+
+remove_theme_support('block-templates');
+
