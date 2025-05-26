@@ -84,11 +84,5 @@ add_action('after_setup_theme', function () {
   ]);
 });
 
-wp_nav_menu([
-  'theme_location' => 'main_menu',
-  'menu_class' => 'main-menu',
-  'container' => false,
-]);
-
 remove_theme_support('block-templates');
 
