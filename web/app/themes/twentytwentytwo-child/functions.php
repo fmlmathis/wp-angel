@@ -1,7 +1,7 @@
 <?php
 // Définition des types de posts personnalisés
 global $angel_post_types;
-$angel_post_types = ['page', 'business-plan', 'lancement', 'pilotage'];
+$angel_post_types = ['page', 'business-plan', 'lancement', 'pilotage', 'solution'];
 
 // Charger les styles du parent
 add_action('wp_enqueue_scripts', function () {
