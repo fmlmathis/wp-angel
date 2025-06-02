@@ -46,6 +46,7 @@
     "wpackagist-plugin/integromat-connector": "^1.5",
     "wpackagist-plugin/leadin": "^11.3",
     "wpackagist-plugin/mailgun": "2.1.6",
+    "wpackagist-plugin/wordpress-importer": "^0.8.4",
     "wpackagist-plugin/wordpress-seo": "^25.1",
     "wpackagist-plugin/wp-graphql": "^1.14.4",
     "wpackagist-plugin/wpgraphql-acf": "^2.4",
