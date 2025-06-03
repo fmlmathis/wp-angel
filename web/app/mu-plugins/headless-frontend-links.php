@@ -71,30 +71,6 @@ function headless_frontend_page_link($permalink, $page_id) {
 }
 
 /**
- * Modifie les URLs des pièces jointes pour qu'elles pointent vers le frontend headless
- */
-function headless_frontend_attachment_link($permalink, $attachment_id) {
-    // URL du frontend
-    $frontend_url = 'https://new.angel-start.com';
-    
-    // Obtenir le chemin relatif de l'URL
-    $path = parse_url($permalink, PHP_URL_PATH);
-    
-    // Vérifier si cette pièce jointe est liée à un article de blog
-    $parent_post_id = wp_get_post_parent_id($attachment_id);
-    if ($parent_post_id) {
-        $parent_post = get_post($parent_post_id);
-        $blog_post_types = get_blog_post_types();
-        if ($parent_post && in_array($parent_post->post_type, $blog_post_types) && strpos($path, '/blog/') !== 0) {
-            $path = '/blog' . $path;
-        }
-    }
-    
-    // Construire la nouvelle URL avec le domaine du frontend
-    return $frontend_url . $path;
-}
-
-/**
  * Modifie les URLs des types de contenu personnalisés
  */
 function headless_frontend_custom_post_type_link($permalink, $post) {
@@ -106,15 +82,4 @@ function headless_frontend_custom_post_type_link($permalink, $post) {
 add_filter('post_link', 'headless_frontend_post_link', 10, 2);
 add_filter('page_link', 'headless_frontend_page_link', 10, 2);
 add_filter('term_link', 'headless_frontend_term_link', 10, 2);
-add_filter('attachment_link', 'headless_frontend_attachment_link', 10, 2);
 add_filter('post_type_link', 'headless_frontend_custom_post_type_link', 10, 2);
-
-/**
- * Ajoute un message dans l'admin pour indiquer que le site est en mode headless
- */
-function headless_admin_notice() {
-    echo '<div class="notice notice-info is-dismissible">
-        <p>Ce site WordPress est en mode <strong>headless</strong>. Le frontend public est disponible sur <a href="https://new.angel-start.com" target="_blank">new.angel-start.com</a>.</p>
-    </div>';
-}
-add_action('admin_notices', 'headless_admin_notice');
