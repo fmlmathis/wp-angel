@@ -1,6 +1,7 @@
 .clever.json
 vendor/
 !web/app/plugins/polylang-pro/vendor/
+!web/app/plugins/polylang-pro-v2/vendor/
 !web/app/plugins/wordpress-seo-premium/vendor/
 !web/app/plugins/link-whisper-premium/vendor/
 composer.lock
