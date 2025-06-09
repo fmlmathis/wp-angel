@@ -19,7 +19,7 @@ function get_blog_post_types() {
  */
 function headless_frontend_post_link($permalink, $post) {
     // URL du frontend
-    $frontend_url = 'https://new.angel-start.com';
+    $frontend_url = 'https://angel-start.com';
     
     // Obtenir le chemin relatif de l'URL
     $path = parse_url($permalink, PHP_URL_PATH);
@@ -40,7 +40,7 @@ function headless_frontend_post_link($permalink, $post) {
  */
 function headless_frontend_term_link($permalink, $term) {
     // URL du frontend
-    $frontend_url = 'https://new.angel-start.com';
+    $frontend_url = 'https://angel-start.com';
     
     // Obtenir le chemin relatif de l'URL
     $path = parse_url($permalink, PHP_URL_PATH);
@@ -61,7 +61,7 @@ function headless_frontend_term_link($permalink, $term) {
  */
 function headless_frontend_page_link($permalink, $page_id) {
     // URL du frontend
-    $frontend_url = 'https://new.angel-start.com';
+    $frontend_url = 'https://angel-start.com';
     
     // Obtenir le chemin relatif de l'URL
     $path = parse_url($permalink, PHP_URL_PATH);
