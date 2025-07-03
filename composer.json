@@ -47,6 +47,7 @@
     "wpackagist-plugin/leadin": "^11.3",
     "wpackagist-plugin/mailgun": "2.1.6",
     "wpackagist-plugin/official-facebook-pixel": "^4.1",
+    "wpackagist-plugin/pixelyoursite": "11.0.0.3",
     "wpackagist-plugin/wordpress-importer": "^0.8.4",
     "wpackagist-plugin/wordpress-seo": "^25.1",
     "wpackagist-plugin/wp-graphql": "^1.14.4",
