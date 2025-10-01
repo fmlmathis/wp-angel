@@ -86,3 +86,20 @@ add_action('after_setup_theme', function () {
 
 remove_theme_support('block-templates');
 
+add_action('init', function () {
+  global $angel_post_types;
+  foreach ($angel_post_types as $type) {
+      register_post_meta($type, '_yoast_wpseo_title', [
+          'show_in_rest' => true,
+          'single' => true,
+          'type' => 'string',
+      ]);
+      register_post_meta($type, '_yoast_wpseo_metadesc', [
+          'show_in_rest' => true,
+          'single' => true,
+          'type' => 'string',
+      ]);
+  }
+});
+
+
