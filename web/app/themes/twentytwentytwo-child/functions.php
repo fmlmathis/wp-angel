@@ -86,20 +86,28 @@ add_action('after_setup_theme', function () {
 
 remove_theme_support('block-templates');
 
-add_action('init', function () {
-  global $angel_post_types;
-  foreach ($angel_post_types as $type) {
-      register_post_meta($type, '_yoast_wpseo_title', [
+
+function autoriser_champs_yoast_api() {
+  // On inclut les types de posts par défaut et les vôtres
+  $post_types_a_autoriser = ['post', 'page', 'business-plan', 'lancement', 'pilotage', 'solution'];
+
+  // On boucle sur chaque type de post pour autoriser les champs Yoast
+  foreach ($post_types_a_autoriser as $post_type) {
+      // Autoriser le champ "Titre SEO"
+      register_post_meta($post_type, '_yoast_wpseo_title', [
           'show_in_rest' => true,
           'single' => true,
           'type' => 'string',
       ]);
-      register_post_meta($type, '_yoast_wpseo_metadesc', [
+
+      // Autoriser le champ "Méta description"
+      register_post_meta($post_type, '_yoast_wpseo_metadesc', [
           'show_in_rest' => true,
           'single' => true,
           'type' => 'string',
       ]);
+      
+      // Vous pouvez ajouter d'autres champs ici si besoin, ex: '_yoast_wpseo_canonical'
   }
-});
-
-
+}
+add_action('rest_api_init', 'autoriser_champs_yoast_api');
